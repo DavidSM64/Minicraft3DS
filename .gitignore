@@ -46,6 +46,7 @@ Temporary Items
 *.3dsx
 *.elf
 *.smdh
+build
 
 # Eclipse
 .settings
