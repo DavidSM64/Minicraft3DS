@@ -48,7 +48,6 @@ bool screenShot;
 extern char versionText[34];
 
 Entity player;
-sf2d_texture * lightScreen;
 
 sf2d_texture * minimap[5];
 u8 map[5][128*128];
