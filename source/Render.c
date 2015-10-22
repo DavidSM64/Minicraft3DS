@@ -418,11 +418,11 @@ void renderLightsToStencil() {
 		int i;
 		for (i = 0; i < eManager.lastSlot[currentLevel]; ++i) {
 			Entity e = eManager.entities[currentLevel][i];
-			if (e.type != ENTITY_FURNITURE
-					&& e.entityFurniture.itemID == ITEM_LANTERN)
+			if (e.type != ENTITY_FURNITURE)
 				continue;
-			if (e.x > player.x - 160 && e.y > player.y - 125
-					&& e.x < player.x + 160 && e.y < player.y + 125)
+			if (e.entityFurniture.itemID == ITEM_LANTERN && e.x > player.x - 160
+					&& e.y > player.y - 125 && e.x < player.x + 160
+					&& e.y < player.y + 125)
 				renderLight(e.x, e.y, lanternLightBake);
 		}
 		GPU_SetDepthTestAndWriteMask(true, GPU_GEQUAL, GPU_WRITE_ALL);
