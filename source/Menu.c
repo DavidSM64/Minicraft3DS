@@ -764,7 +764,7 @@ void renderMenu(int menu,int xscr,int yscr){
                     sf2d_draw_rectangle(0,0,400,240, 0xDFDFDFAF);
                 }
 	            offsetX = xscr;offsetY = yscr;
-		            renderBackground(xscr,yscr);
+		            renderMenuBackground(xscr,yscr);
 	            offsetX = 0;offsetY = 0;
                 renderFrame(1,1,24,14,0xAF1010FF);
                 drawText("Paused",164,32);
@@ -797,7 +797,7 @@ void renderMenu(int menu,int xscr,int yscr){
                     sf2d_draw_rectangle(0,0,400,240, 0xDFDFDFAF);
                 }
 	            offsetX = xscr;offsetY = yscr;
-		            renderBackground(xscr,yscr);
+		            renderMenuBackground(xscr,yscr);
 	            offsetX = 0;offsetY = 0;
                 renderFrame(5,3,21,12,0x1010FFFF);
                 if(!rev){ opacity+=5; if(opacity == 255) rev = true; }
@@ -818,7 +818,7 @@ void renderMenu(int menu,int xscr,int yscr){
                     sf2d_draw_rectangle(0,0,400,240, 0xDFDFDFAF);
                 }
 	            offsetX = xscr;offsetY = yscr;
-		            renderBackground(xscr,yscr);
+		            renderMenuBackground(xscr,yscr);
 	            offsetX = 0;offsetY = 0;
                 renderFrame(5,3,21,12,0x1010FFFF);
                 if(!rev){ opacity+=5; if(opacity == 255) rev = true; }
@@ -838,7 +838,7 @@ void renderMenu(int menu,int xscr,int yscr){
                     sf2d_draw_rectangle(0,0,400,240, 0xDFDFDFAF);
                 }
 	            offsetX = xscr;offsetY = yscr;
-		            renderBackground(xscr,yscr);
+		            renderMenuBackground(xscr,yscr);
 	            offsetX = 0;offsetY = 0;
                 renderFrame(1,1,24,14,0x1010FFFF);
                 renderItemList(player.p.inv, 1,1,24,14, curInvSel);
@@ -851,7 +851,7 @@ void renderMenu(int menu,int xscr,int yscr){
                     sf2d_draw_rectangle(0,0,400,240, 0xDFDFDFAF);
                 }
 	            offsetX = xscr;offsetY = yscr;
-		            renderBackground(xscr,yscr);
+		            renderMenuBackground(xscr,yscr);
 	            offsetX = 0;offsetY = 0;
 	            
                 renderFrame(15,1,24,4,0x1010FFFF);
@@ -887,7 +887,7 @@ void renderMenu(int menu,int xscr,int yscr){
                     sf2d_draw_rectangle(0,0,400,240, 0xDFDFDFAF);
                 }
 	            offsetX = xscr;offsetY = yscr;
-		            renderBackground(xscr,yscr);
+		            renderMenuBackground(xscr,yscr);
 		        if (curChestEntity->entityFurniture.r == 1){ offsetX = 48;offsetY = 0;}
 		        else {offsetX = 0;offsetY = 0;}
 		        
