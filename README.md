@@ -1,7 +1,7 @@
 # Minicraft3DS
 3DS Homebrew port of Notch's ludum dare game "Minicraft"
 
-This game requires ctrulib by smea, and sf2dlib/sfillib by xepri.
+This game requires ctrulib by smea, and sf2dlib/sfillib by xerpi.
 
 Current Version: Beta Build 3
 
