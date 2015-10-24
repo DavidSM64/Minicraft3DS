@@ -731,6 +731,7 @@ void renderMenuBackground(int xScroll, int yScroll) {
 }
 
 void renderBackground(int xScroll, int yScroll) {
+    sf2d_draw_rectangle(0, 0, 400, 240, dirtColor[currentLevel]); // dirt color
 	int xo = xScroll >> 4;
 	int yo = yScroll >> 4;
 	int x, y;

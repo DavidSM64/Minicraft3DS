@@ -219,6 +219,12 @@ int main() {
 	loadSound(&snd_craft, "resources/craft.raw");
 
 	bakeLights();
+	
+	dirtColor[0] = 0xAD9291FF;
+	dirtColor[1] = 0x826D6CFF;
+	dirtColor[2] = 0x666666FF;
+	dirtColor[3] = 0x555555FF;
+	dirtColor[4] = 0x444444FF;
 
 	int i;
 	for (i = 0; i < 5; ++i) {

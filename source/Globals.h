@@ -55,6 +55,7 @@ u8 data[5][128*128];
 u8 treeTable[256];
 u16 rockTable[256];
 u16 grassTable[16];
+int dirtColor[5];
 char currentFileName[256];
 extern u8 currentMenu;
 extern char fpsstr[];
