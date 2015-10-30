@@ -3,6 +3,7 @@
 char options[][12] = {"Start Game", "How To Play","Settings", "About", "Exit"};
 char pOptions[][24] = {"Return to game", "Save Progress", "Exit to title"};
 char keybOptions[][24] = {"Exit and Save", "Exit and Don't save","Reset to default"};
+char setOptions[][24] = {"Rebind Buttons", "Texture packs", "Debug Text:   ", "Return to title"};
 
 // Rebind buttons menu (Settings)
 int keys[] = {
@@ -33,10 +34,16 @@ bool isTouching = false;
 int touchX = 0, touchY = 0, touchW = 0, touchH = 0;
 s8 errorFileName = 0;
 
+// Load Texturepacks Menu
+char tpFileNames[1000][256];
+char tpFileComment[1000][60];
+s16 tpFileCount = 0;
+s8 isLoadingTP = 0;
+
 s16 pauseSaveDisplayTimer = 0;
 
 void readFiles(){
-    memset(&fileNames, 0, 256000); // reset fileNames
+    memset(&fileNames, 0, sizeof(fileNames)); // reset fileNames
     worldFileCount = 0;
     DIR * d;
     struct dirent * dir;
@@ -50,6 +57,35 @@ void readFiles(){
                 fread(&fileWin[worldFileCount],sizeof(bool), 1, file);
                 fclose(file);
                 ++worldFileCount;
+            }
+        }
+        closedir(d);
+    }
+}
+
+void readTPFiles(){
+    memset(&tpFileNames, 0, sizeof(tpFileNames)); // reset tp fileNames
+    memset(&tpFileComment, 0, sizeof(tpFileComment)); // reset zip comments
+    tpFileCount = 1; // 0 = default.
+    DIR * d;
+    struct dirent * dir;
+    d = opendir("./texturepacks/");
+    if (d){
+        while ((dir = readdir(d)) != NULL) {
+            if (strstr(dir->d_name, ".zip") != NULL) { // Check if filename contains ".zip"
+                strncpy(tpFileNames[tpFileCount], dir->d_name, strlen(dir->d_name)-4);
+                
+                char fullDirName[256];
+                sprintf(fullDirName,"./texturepacks/%s",dir->d_name);
+                //int err = 
+                getTexturePackComment(fullDirName, tpFileComment[tpFileCount]);
+                /*
+                if(err > 0){
+                    char errorText[10];    
+                    sprintf(errorText,"err:%d",err);
+                    strncpy(tpFileComment[tpFileCount], errorText, strlen(errorText));
+                }*/
+                ++tpFileCount;
             }
         }
         closedir(d);
@@ -236,7 +272,7 @@ s8 checkPropButtons(){
 Item median;
 void tickMenu(int menu){
     switch(menu){
-        case MENU_SETTINGS:
+        case MENU_SETTINGS_REBIND:
         if(!bindOpt){
             if(!selBut){
 		        if (k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection=21;}
@@ -281,17 +317,17 @@ void tickMenu(int menu){
                             k_delete.input = keyProp[9];
                             
                             FILE *fs=fopen("btnSave.bin","wb");
-                            fwrite(keyProp,sizeof(int),9,fs);
+                            fwrite(keyProp,sizeof(int),10,fs);
                             fclose(fs);
                             
-                            currentSelection = 2;
-                            currentMenu = MENU_TITLE;
+                            currentSelection = 0;
+                            currentMenu = MENU_SETTINGS;
                             errorBut = -1;
                         } else errorBut = checkPropButtons();
                         break;
                     case 1: // Exit and DON'T save  
-                        currentSelection = 2;
-                        currentMenu = MENU_TITLE;
+                        currentSelection = 0;
+                        currentMenu = MENU_SETTINGS;
                         errorBut = -1;
                         break;
                     case 2: // reset defaults
@@ -391,6 +427,7 @@ void tickMenu(int menu){
         case MENU_WIN:
             if (k_accept.clicked){ 
 	            sf2d_set_clear_color(0xFF);
+                currentSelection = 0;
                 currentMenu = MENU_TITLE;
                 saveCurrentWorld(currentFileName, &eManager, &player, (u8*)map, (u8*)data);
             }
@@ -398,6 +435,7 @@ void tickMenu(int menu){
         case MENU_LOSE:
             if (k_accept.clicked){ 
 	            sf2d_set_clear_color(0xFF);
+                currentSelection = 0;
                 currentMenu = MENU_TITLE;
             }
         break;
@@ -506,7 +544,82 @@ void tickMenu(int menu){
                 if(touchDelay > 0) --touchDelay;
             }
         break;
+        case MENU_SETTINGS_TP:
+            
+            if (k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection = tpFileCount-1;}
+            if (k_down.clicked){ ++currentSelection; if(currentSelection > tpFileCount-1)currentSelection=0;}
+            if (k_decline.clicked){
+                if(isLoadingTP < 1){
+                    currentMenu = MENU_SETTINGS;
+                    currentSelection = 1;
+                }
+            }
+            if (k_accept.clicked){
+                
+                if(currentSelection > 0){
+                    isLoadingTP = 4;
+                } else {
+	                icons = sfil_load_PNG_buffer(icons2_png, SF2D_PLACE_RAM);
+	                dirtColor[0] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 0)); 
+	                dirtColor[1] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 1)); 
+	                dirtColor[2] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 2)); 
+	                dirtColor[3] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 3)); 
+	                dirtColor[4] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 4)); 
+	                font = sfil_load_PNG_buffer(Font_png, SF2D_PLACE_RAM);
+	                bottombg = sfil_load_PNG_buffer(bottombg_png, SF2D_PLACE_RAM);
+                    currentMenu = MENU_SETTINGS;
+                    currentSelection = 1;
+                    remove("lastTP.bin");
+                }
+            }
+        break;
         
+        case MENU_SETTINGS:
+		    if (k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection=3;}
+		    if (k_down.clicked){ ++currentSelection; if(currentSelection > 3)currentSelection=0;}
+            if(k_decline.clicked){
+                currentMenu = MENU_TITLE;
+                currentSelection = 2;
+            }
+		    if(k_accept.clicked){
+                switch(currentSelection){
+                    case 0:
+                        keyProp[0] = k_up.input;
+                        keyProp[1] = k_down.input;
+                        keyProp[2] = k_left.input;
+                        keyProp[3] = k_right.input;
+                        keyProp[4] = k_attack.input;
+                        keyProp[5] = k_menu.input;
+                        keyProp[6] = k_pause.input;
+                        keyProp[7] = k_accept.input;
+                        keyProp[8] = k_decline.input;
+                        keyProp[9] = k_delete.input;
+                        left = true;
+                        selBut = false;
+                        bindOpt = false;
+                        currentSelection = 0;
+                        currentMenu = MENU_SETTINGS_REBIND;
+                        break;
+                    case 1:
+                        readTPFiles();
+                        currentMenu = MENU_SETTINGS_TP;
+                        currentSelection = 0;
+                        break;
+                    case 2:
+                        shouldRenderDebug = !shouldRenderDebug; // toggle option
+                        break;
+                    case 3:
+                        if(true){
+                        FILE * fset = fopen("settings.bin","wb");
+                        fwrite(&shouldRenderDebug,sizeof(bool),1,fset);
+                        fclose(fset);
+                        }
+                        currentMenu = MENU_TITLE;
+                        currentSelection = 2;
+                        break;
+                }
+            }
+        break;
         case MENU_TITLE:
 		    if (k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection=4;}
 		    if (k_down.clicked){ ++currentSelection; if(currentSelection > 4)currentSelection=0;}
@@ -521,19 +634,6 @@ void tickMenu(int menu){
                         areYouSure = false;
                     break;
                     case 2:
-                        keyProp[0] = k_up.input;
-                        keyProp[1] = k_down.input;
-                        keyProp[2] = k_left.input;
-                        keyProp[3] = k_right.input;
-                        keyProp[4] = k_attack.input;
-                        keyProp[5] = k_menu.input;
-                        keyProp[6] = k_pause.input;
-                        keyProp[7] = k_accept.input;
-                        keyProp[8] = k_decline.input;
-                        keyProp[9] = k_delete.input;
-                        left = true;
-                        selBut = false;
-                        bindOpt = false;
                         currentSelection = 0;
                         currentMenu = MENU_SETTINGS;
                     break;
@@ -586,6 +686,61 @@ char guiText4[] = " SPACE  BACKSPACE";
 void renderMenu(int menu,int xscr,int yscr){
     int i = 0;
     switch(menu){
+        case MENU_SETTINGS_TP:
+            offsetX = 0;offsetY = (currentSelection * 40) - 48;
+		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
+		        drawText("Texture Packs",122,-16);
+		        for(i = 0; i < tpFileCount; ++i){
+                    int color = 0x323292FF;
+                    char * text = tpFileNames[i];
+                    char * cmtText = tpFileComment[i];
+                    if(i == 0){
+                        text = "Default";
+                        cmtText = "Regular look of the game";
+                        color = 0x601092FF;
+                    }
+                    if(i != currentSelection) color &= 0xFFFFFF7F; // Darken color.
+                    else if(areYouSure)color = 0xDF1010FF;
+                    
+                    renderFrame(1,i*5,24,(i*5)+5,color);
+                    drawText(text,(400-(strlen(text)*12))/2,i*80+16);
+                    
+                    if(strlen(cmtText) > 29){
+                        char cmtTxt1[30],cmtTxt2[30];
+                        strncpy(cmtTxt1, cmtText, 29);
+                        strncpy(cmtTxt2, cmtText + 29, strlen(cmtText)-29);
+                        drawTextColor(cmtTxt1,(400-(strlen(cmtTxt1)*12))/2,i*80+36,0xAFAFAFFF);
+                        drawTextColor(cmtTxt2,(400-(strlen(cmtTxt2)*12))/2,i*80+50,0xAFAFAFFF);
+                    } else {
+                        drawTextColor(cmtText,(400-(strlen(cmtText)*12))/2,i*80+43,0xAFAFAFFF);
+                    }
+                }
+            offsetX = 0;offsetY = 0;
+                if(isLoadingTP > 0){
+                    --isLoadingTP;
+                    renderFrame(1,5,24,9,0x666666FF);
+                    drawTextColor("Loading Texture pack...",(400-(23*12))/2,108,0xFFFF10FF);
+                    if(isLoadingTP == 0){
+                        char fullDirName[256];
+                        sprintf(fullDirName,"texturepacks/%s.zip",tpFileNames[currentSelection]);
+                        loadedtp = loadTexturePack(fullDirName);   
+                        
+                        FILE * fs=fopen("lastTP.bin","w");
+                        fprintf(fs,"%s", fullDirName);
+                        fclose(fs);
+                        
+                        currentMenu = MENU_SETTINGS;
+                        currentSelection = 1; 
+                    }
+                }
+		    sf2d_end_frame();
+		    sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);	
+                drawText("Press   to select", 58, 100);
+                renderButtonIcon(k_accept.input & -k_accept.input, 128, 98, 1);
+                drawText("Press   to return", 58, 150);
+                renderButtonIcon(k_decline.input & -k_decline.input, 128, 148, 1);
+		    sf2d_end_frame();
+        break;
         case MENU_LOADGAME:
 		sf2d_start_frame(GFX_TOP, GFX_LEFT);
         if(!enteringName){ // World select
@@ -674,7 +829,7 @@ void renderMenu(int menu,int xscr,int yscr){
             
 		sf2d_end_frame();
         break;
-        case MENU_SETTINGS:
+        case MENU_SETTINGS_REBIND:
 		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
 		        drawTextColor("Rebind Buttons",116,12,0xAFAF00FF);
                 drawText("Button",16,32);
@@ -923,6 +1078,41 @@ void renderMenu(int menu,int xscr,int yscr){
                 renderButtonIcon(k_decline.input & -k_decline.input, 128, 218, 1);
 		    sf2d_end_frame();
         break;
+        case MENU_SETTINGS:
+		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
+		        drawText("Settings",(400-(8*12))/2,40);
+		        for(i = 3; i >= 0; --i){
+                    char* msg = setOptions[i];
+                    u32 color = 0x7F7F7FFF;
+                    if(i == currentSelection) color = 0xFFFFFFFF;
+                    if(i == 2){
+                        if(shouldRenderDebug) drawSizedTextColor("On",142, ((8 + i) * 32 - 170) >> 1,2.0, 0x00DF00FF);    
+                        else  drawSizedTextColor("Off",142, ((8 + i) * 32 - 170) >> 1,2.0, 0xDF0000FF);   
+                    }
+                    drawSizedTextColor(msg,(200 - (strlen(msg) * 8))/2, ((8 + i) * 32 - 170) >> 1,2.0, color);    
+                }
+		    sf2d_end_frame();
+		    sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);	
+		        switch(currentSelection){
+                    case 0:
+                        drawTextColor("Change the controls",(320 - (19 * 12))/2,24,0xFFFF7FFF);
+                        break;
+                    case 1:
+                        drawTextColor("Change the game's art",(320 - (21 * 12))/2,24,0xFFFF7FFF);
+                        break;
+                    case 2:
+                        drawTextColor("Show FPS/Pos/Entities",(320 - (22 * 12))/2,24,0xFFFF7FFF);
+                        break;
+                    case 3:
+                        drawTextColor("Back to the titlescreen",(320 - (23 * 12))/2,24,0xFFFF7FFF);
+                        break;
+                }
+                drawText("Press   to select", 58, 100);
+                renderButtonIcon(k_accept.input & -k_accept.input, 128, 98, 1);
+                drawText("Press   to return", 58, 150);
+                renderButtonIcon(k_decline.input & -k_decline.input, 128, 148, 1);
+		    sf2d_end_frame();
+        break;
         case MENU_TITLE:
             /* Top Screen */
 		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
@@ -934,7 +1124,7 @@ void renderMenu(int menu,int xscr,int yscr){
                     if(i == currentSelection) color = 0xFFFFFFFF;
                     drawSizedTextColor(msg,(200 - (strlen(msg) * 8))/2, ((8 + i) * 20 - 50) >> 1,2.0, color);    
                 }
-		    
+                
 		        drawText(versionText,2,225);
 		    sf2d_end_frame();
 		    

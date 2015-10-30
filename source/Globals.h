@@ -3,6 +3,10 @@
 #include "SaveLoad.h"
 #include "Input.h"
 
+#include "icons2_png.h"
+#include "Font_png.h"
+#include "bottombg_png.h"
+
 #define CIRCLEPAD 0xF0000000
 #define CSTICK 0x0F000000
 
@@ -18,6 +22,8 @@
 #define MENU_LOSE 9
 #define MENU_PAUSED 10
 #define MENU_LOADGAME 11
+#define MENU_SETTINGS_REBIND 12
+#define MENU_SETTINGS_TP 13
 
 #define TILE_NULL 255
 #define TILE_GRASS 0
@@ -43,19 +49,27 @@
 #define TILE_CLOUDCACTUS 20
 #define TILE_HOLE 21
 
+#define SWAP_UINT32(x) (((x) >> 24) | (((x) & 0x00FF0000) >> 8) | (((x) & 0x0000FF00) << 8) | ((x) << 24))
+
 bool screenShot;
+int loadedtp;
 
 extern char versionText[34];
 
 Entity player;
 
+bool shouldRenderDebug;
+
+sf2d_texture *icons;
+sf2d_texture *font;
+sf2d_texture *bottombg;
 sf2d_texture * minimap[5];
 u8 map[5][128*128];
 u8 data[5][128*128];
 u8 treeTable[256];
 u16 rockTable[256];
 u16 grassTable[16];
-int dirtColor[5];
+u32 dirtColor[5];
 char currentFileName[256];
 extern u8 currentMenu;
 extern char fpsstr[];

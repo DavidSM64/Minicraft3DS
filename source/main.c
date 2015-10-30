@@ -7,13 +7,11 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "icons2_png.h"
-#include "Font_png.h"
-
 #include "Globals.h"
 #include "Render.h"
 #include "MapGen.h"
 #include "Menu.h"
+#include "texturepack.h"
 
 void initMiniMap(bool loadUpWorld) {
 	int i, x, y;
@@ -199,16 +197,14 @@ int main() {
 	sf2d_init();
 	csndInit();
 	noItem = newItem(ITEM_NULL, 0);
-
+	
 	currentMenu = MENU_TITLE;
 	currentSelection = 0;
 	quitGame = false;
 
 	icons = sfil_load_PNG_buffer(icons2_png, SF2D_PLACE_RAM);
 	font = sfil_load_PNG_buffer(Font_png, SF2D_PLACE_RAM);
-
-	//consoleInit(GFX_BOTTOM, NULL);
-	// printf("Press 'Start' to exit.\n");
+	bottombg = sfil_load_PNG_buffer(bottombg_png, SF2D_PLACE_RAM);
 
 	loadSound(&snd_playerHurt, "resources/playerhurt.raw");
 	loadSound(&snd_playerDeath, "resources/playerdeath.raw");
@@ -220,11 +216,6 @@ int main() {
 
 	bakeLights();
 	
-	dirtColor[0] = 0xAD9291FF;
-	dirtColor[1] = 0x826D6CFF;
-	dirtColor[2] = 0x666666FF;
-	dirtColor[3] = 0x555555FF;
-	dirtColor[4] = 0x444444FF;
 
 	int i;
 	for (i = 0; i < 5; ++i) {
@@ -232,6 +223,13 @@ int main() {
 				SF2D_PLACE_RAM);
 		sf2d_texture_tile32(minimap[i]);
 	}
+	
+	dirtColor[0] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 0)); 
+	dirtColor[1] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 1)); 
+	dirtColor[2] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 2)); 
+	dirtColor[3] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 3)); 
+	dirtColor[4] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 4)); 
+
 
 	sf2d_set_vblank_wait(true);
 
@@ -264,8 +262,20 @@ int main() {
 		fread(&k_delete.input, sizeof(int), 1, file);
 		fclose(file);
 	}
-
-	//screenShot = false;
+	
+	/* If lastTP exists, then use that. */
+	if ((file = fopen("lastTP.bin", "r"))) {
+		char fnbuf[256];
+		fgets(fnbuf, 256, file); // get directory to texturepack
+		loadTexturePack(fnbuf);   
+		fclose(file);
+	}
+	
+	shouldRenderDebug = true;
+	if ((file = fopen("settings.bin", "r"))) {
+        fread(&shouldRenderDebug,sizeof(bool),1,file);
+		fclose(file);
+	}
 
 	tickCount = 0;
 	initRecipes();
@@ -275,29 +285,20 @@ int main() {
 		hidScanInput();
 		tickKeys(hidKeysHeld(), hidKeysDown());
 
-		//if (quitGame || hidKeysHeld() & KEY_SELECT) break;
-		if (quitGame)
-			break;
-		//if (hidKeysDown() & (KEY_L | KEY_R)) screenShot = true;
-		//	else screenShot = false;
+		if (quitGame) break;
 
-		if (initGame > 0)
-			setupGame(initGame == 1 ? true : false);
+		if (initGame > 0) setupGame(initGame == 1 ? true : false);
 
 		if (currentMenu == 0) {
 			tick();
-			sprintf(fpsstr, " FPS: %.0f, X:%d, Y:%d, E:%d", sf2d_get_fps(),
-					player.x, player.y, eManager.lastSlot[currentLevel]);
 			sf2d_start_frame(GFX_TOP, GFX_LEFT);
 			if (currentLevel == 0) {
-				sf2d_draw_texture_part_scale(minimap[1], (-xscr / 3) - 256,
-						(-yscr / 3) - 32, 0, 0, 128, 128, 12.5, 7.5);
-				//sf2d_draw_rectangle(0, 0, 400, 240, 0xDFDFDFAF);
+				sf2d_draw_texture_part_scale(minimap[1], (-xscr / 3) - 256, (-yscr / 3) - 32, 0, 0, 128, 128, 12.5, 7.5);
+				sf2d_draw_rectangle(0, 0, 400, 240, 0xDFDFDFAF);
 			}
 
 			offsetX = xscr;
 			offsetY = yscr;
-			//if(currentLevel)
 			sf2d_draw_rectangle(0, 0, 400, 240, RGBA8(12, 12, 12, 255)); //You might think "real" black would be better, but it actually looks better that way
 			renderLightsToStencil();
 
@@ -308,19 +309,16 @@ int main() {
 			resetStencilStuff();
 			offsetX = 0;
 			offsetY = 0;
-			renderItemWithText(player.p.activeItem, 10, 205);
-			// drawText(debugText,2,208);
-			drawText(fpsstr, 2, 225);
+			if(shouldRenderDebug){
+			    sprintf(fpsstr, " FPS: %.0f, X:%d, Y:%d, E:%d", sf2d_get_fps(), player.x, player.y, eManager.lastSlot[currentLevel]);
+			    drawText(fpsstr, 2, 225);
+            }
+			
 			sf2d_end_frame();
 
 			sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
-			if (currentLevel == 0 && airWizardHealthDisplay > 0) {
-				sprintf(bossHealthText, "BOSS: %.0f%%",
-						((float) airWizardHealthDisplay / 2000.0) * 100);
-				drawText(bossHealthText, 2, 225);
-			}
+			sf2d_draw_texture(bottombg, 0, 0);
 			renderGui();
-			sf2d_draw_texture(minimap[currentLevel], 192, 112);	//y:56
 			sf2d_end_frame();
 		} else {
 			tickMenu(currentMenu);

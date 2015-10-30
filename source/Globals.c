@@ -1,6 +1,6 @@
 #include "Globals.h"
 
-char versionText[34] = "BETA BUILD 3";
+char versionText[34] = "BETA BUILD 4";
 char fpsstr[34];
 u8 currentMenu = 0;
 
@@ -143,7 +143,7 @@ void hurtEntity(Entity* e, int damage, int dir, u32 hurtColor){
             e->zombie.health -= damage; 
             if(e->zombie.health < 1){ 
                 addItemsToWorld(newItem(ITEM_FLESH,1),e->x+8, e->y+8, (rand()%2) + 1);
-                player.p.score += 50 * e->zombie.lvl;
+                player.p.score += 50 * (e->zombie.lvl + 1);
                 removeEntityFromList(e,e->level,&eManager);
                 trySpawn(3, currentLevel);
                 return;
@@ -153,7 +153,7 @@ void hurtEntity(Entity* e, int damage, int dir, u32 hurtColor){
             e->slime.health -= damage; 
             if(e->slime.health < 1){ 
                 addItemsToWorld(newItem(ITEM_SLIME,1),e->x+8, e->y+8, (rand()%2) + 1);
-                player.p.score += 25 * e->slime.lvl;
+                player.p.score += 25 * (e->slime.lvl + 1);
                 removeEntityFromList(e,e->level,&eManager);
                 trySpawn(3, currentLevel);
                 return;
@@ -333,6 +333,8 @@ bool tileIsSolid(int tile, Entity * e){
             return true;
         case TILE_WATER:
             if(e != NULL && !e->canSwim) return true;
+        case TILE_HOLE:
+            if(e != NULL && e->type != ENTITY_PLAYER) return true;
     }
     return false;
 }

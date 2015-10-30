@@ -7,8 +7,6 @@
 #include "Globals.h"
 #include "MapGen.h"
 
-sf2d_texture *icons;
-sf2d_texture *font;
 sf2d_texture *playerLightBake;
 sf2d_texture *lanternLightBake;
 int offsetX, offsetY;
@@ -58,6 +56,7 @@ void renderRecipes(RecipeManager * r, int xo, int yo, int x1, int y1,
 void renderItemList(Inventory * inv, int xo, int yo, int x1, int y1,
 		int selected);
 void renderItemWithText(Item* item, int x, int y);
+void renderItemWithTextCentered(Item* item, int width, int y);
 void renderItemIcon(int itemID, int countLevel, int x, int y);
 void renderItemIcon2(int itemID, int countLevel, int x, int y, int z);
 

@@ -414,17 +414,27 @@ void renderLightsToStencil() {
 				GPU_STENCIL_KEEP);
 		GPU_SetAlphaTest(true, GPU_GREATER, 0);
 
-		renderLight(player.x, player.y, playerLightBake);
+        if(player.p.activeItem->id == ITEM_LANTERN) renderLight(player.x, player.y, lanternLightBake);
+        else renderLight(player.x, player.y, playerLightBake);
+        
 		int i;
 		for (i = 0; i < eManager.lastSlot[currentLevel]; ++i) {
 			Entity e = eManager.entities[currentLevel][i];
-			if (e.type != ENTITY_FURNITURE)
-				continue;
-			if (e.entityFurniture.itemID == ITEM_LANTERN && e.x > player.x - 160
-					&& e.y > player.y - 125 && e.x < player.x + 160
-					&& e.y < player.y + 125)
-				renderLight(e.x, e.y, lanternLightBake);
+			if (e.type != ENTITY_FURNITURE)continue;
+			if (e.entityFurniture.itemID == ITEM_LANTERN && e.x > player.x - 160 
+            && e.y > player.y - 125 && e.x < player.x + 160 && e.y < player.y + 125)
+			renderLight(e.x, e.y, lanternLightBake);
 		}
+		
+		int xo = offsetX >> 4;
+		int yo = offsetY >> 4;
+		int x, y;
+		for (x = xo; x <= 13 + xo; ++x) {
+			for (y = yo; y <= 8 + yo; ++y)
+			    if(getTile(x, y) == TILE_LAVA) renderLight(x << 4, y << 4, playerLightBake);
+		}
+		
+		
 		GPU_SetDepthTestAndWriteMask(true, GPU_GEQUAL, GPU_WRITE_ALL);
 		GPU_SetStencilTest(true, GPU_EQUAL, 1, 0xFF, 0x0);
 		GPU_SetAlphaTest(false, GPU_ALWAYS, 0x00);
@@ -470,8 +480,7 @@ void bakeLight(sf2d_texture* texture, int x, int y, int r) {
 			int xd = xx - x;
 			int dist = xd * xd + yd;
 			if (dist <= r * r)
-				if ((dist >= (r - (r / 6)) * (r - (r / 5))) ?
-						rand() % 3 != 0 : true)
+				if ((dist >= (r - (r / 6)) * (r - (r / 5))) ? rand() % 4 != 0 : true)
 					sf2d_set_pixel(texture, xx, yy, RGBA8(0, 0, 0, 255)); // set transparent pixel
 		}
 	}
@@ -628,18 +637,26 @@ void renderTile(int i, int x, int y) {
 
 }
 
+char scoreT[32];
 void renderGui() {
+    //renderFrame(0,0,11,3,0x201092FF);
+    //renderFrame(11,0,20,3,0x201092FF);
 	int i;
 	for (i = 0; i < 10; ++i) {
 		if (i < player.p.health)
-			render(i * 8 + 1, 1, 168, 152, 0);
+			render(i * 8 + 6, 5, 168, 152, 0);
 		else
-			render(i * 8 + 1, 1, 176, 152, 0);
+			render(i * 8 + 6, 5, 176, 152, 0);
 		if (i < player.p.stamina)
-			render(i * 8 + 1, 10, 184, 152, 0);
+			render(i * 8 + 6, 14, 184, 152, 0);
 		else
-			render(i * 8 + 1, 10, 191, 152, 0);
+			render(i * 8 + 6, 14, 191, 152, 0);
 	}
+	sf2d_draw_texture(minimap[currentLevel], 96, 102);
+	renderItemWithTextCentered(player.p.activeItem, 320, 66);
+	itoa(player.p.score, scoreT, 10); // integer to base10 string
+	drawText("Score:",214,12);
+	drawText(scoreT,(140-(strlen(scoreT)*12))/2 + 180,29);
 }
 
 void renderPlayer() {
@@ -1013,6 +1030,20 @@ void renderRecipes(RecipeManager * r, int xo, int yo, int x1, int y1,
 
 void renderItemWithText(Item* item, int x, int y) {
 	renderItemIcon(item->id, item->countLevel, x >> 1, y >> 1);
+	if (item->onlyOne)
+		drawText(getItemName(item->id, item->countLevel), x + 18, y + 2);
+	else
+		drawTextColorSpecial(getItemName(item->id, item->countLevel), x + 18,
+				y + 2, 0xD2D2D2FF, 0xFFFFFFFF);
+}
+
+/* For bottom screen */ 
+void renderItemWithTextCentered(Item* item, int width, int y) {
+	char * tn = getItemName(item->id, item->countLevel);
+    int x = (width - ((strlen(tn) + 2) * 12))/2;
+    
+	renderItemIcon(item->id, item->countLevel, x >> 1, y >> 1);
+	
 	if (item->onlyOne)
 		drawText(getItemName(item->id, item->countLevel), x + 18, y + 2);
 	else

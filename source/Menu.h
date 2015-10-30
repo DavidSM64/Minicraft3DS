@@ -7,6 +7,7 @@
 #include <ctype.h>
 
 #include "Render.h"
+#include "texturepack.h"
 
 void renderMenu(int menu,int xscr,int yscr);
 void tickMenu(int menu);
