@@ -444,7 +444,7 @@ void renderLightsToStencil() {
 }
 
 void resetStencilStuff() {
-	if (currentLevel) {
+	if (currentLevel > 1) {
 		GPU_SetStencilTest(false, GPU_ALWAYS, 0x00, 0xFF, 0x00);
 		GPU_SetStencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_KEEP);
 	}
