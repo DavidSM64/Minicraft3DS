@@ -28,7 +28,7 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	Minicraft3DS
 BUILD		:=	build
-SOURCES		:=	source
+SOURCES		:=	source source/minizip
 DATA		:=	data
 INCLUDES	:=	include
 
