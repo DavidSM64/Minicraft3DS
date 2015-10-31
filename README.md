@@ -2,9 +2,13 @@
 3DS Homebrew port of Notch's ludum dare game "Minicraft"
 
 Dependencies:
+
 ctrulib by smea: https://github.com/smealum/ctrulib
+
 sf2dlib by xerpi: https://github.com/xerpi/sf2dlib
+
 sfillib by xerpi: https://github.com/xerpi/sfillib
+
 zlib: http://www.zlib.net/
 
 Current Version: Beta Build 4
