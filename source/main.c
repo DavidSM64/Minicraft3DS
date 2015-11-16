@@ -204,6 +204,7 @@ void clearScreen(int* data, u8 fill, int size) {
 char debugText[34];
 char bossHealthText[34];
 int main() {
+    initCfgu();
     CFGU_GetSystemModel(&MODEL_3DS);
 	FILE * file;
 	shouldRenderDebug = true;
@@ -357,6 +358,7 @@ int main() {
 	sf2d_free_texture(minimap[4]);
 	freeSounds();
 	csndExit();
+    exitCfgu();
 	sf2d_fini();
 	return 0;
 }

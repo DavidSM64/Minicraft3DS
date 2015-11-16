@@ -1,6 +1,6 @@
 #include "Globals.h"
 
-char versionText[34] = "BETA BUILD 5 (pre 1.0)";
+char versionText[34] = "BETA BUILD 5.01 (pre 1.0)";
 char fpsstr[34];
 u8 currentMenu = 0;
 
@@ -553,11 +553,7 @@ s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir)
                 if(rand()%5==0)addEntityToList(newItemEntity(newItem(ITEM_SEEDS,1),(x<<4)+8, (y<<4)+8,currentLevel),&eManager);
                 setTile(TILE_DIRT,x,y); 
                 return 1;
-            }
-            else if(item->id == ITEM_STONE){
-            	setTile(TILE_ROCK,x,y);
-            	--item->countLevel;
-            }break;
+            } break;
         case TILE_SAND:
             if(item->id == ITEM_CACTUS){ 
                 setTile(TILE_SAPLING_CACTUS,x,y); 
@@ -568,12 +564,7 @@ s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir)
                 addEntityToList(newItemEntity(newItem(ITEM_SAND,1), (x<<4)+8, (y<<4)+8, currentLevel), &eManager);
                 setTile(TILE_DIRT,x,y); 
                 return 1;
-            }
-            else if(item->id == ITEM_STONE){
-            	setTile(TILE_ROCK,x,y);
-            	--item->countLevel;
-            }
-            break;
+            } break;
         case TILE_DIRT:
             if(item->id == TOOL_HOE && playerUseEnergy(4-item->countLevel)){ 
                 setTile(TILE_FARM,x,y);
@@ -583,9 +574,6 @@ s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir)
                 addEntityToList(newItemEntity(newItem(ITEM_DIRT,1), (x<<4)+8, (y<<4)+8, currentLevel), &eManager);
                 setTile(TILE_HOLE,x,y); 
                 return 1;
-            }else if(item->id == ITEM_STONE){
-            	setTile(TILE_ROCK,x,y);
-            	--item->countLevel;
             } break;
         case TILE_HOLE:
         case TILE_WATER:

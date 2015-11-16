@@ -581,12 +581,12 @@ void tickMenu(int menu){
         case MENU_SETTINGS:
 		    if (k_up.clicked){ 
                 --currentSelection; 
-                if(currentSelection == 3 && !(MODEL_3DS & 6)) --currentSelection; 
+                if(currentSelection == 3 && !((MODEL_3DS & 6) != 0)) --currentSelection; 
                 if(currentSelection < 0)currentSelection=4;
             }
 		    if (k_down.clicked){ 
                 ++currentSelection; 
-                if(currentSelection == 3 && !(MODEL_3DS & 6)) ++currentSelection; 
+                if(currentSelection == 3 && !((MODEL_3DS & 6) != 0)) ++currentSelection; 
                 if(currentSelection > 4)currentSelection=0;
             }
             if(k_decline.clicked){
@@ -623,7 +623,7 @@ void tickMenu(int menu){
                         shouldRenderDebug = !shouldRenderDebug; // toggle option
                         break;
                     case 3:
-                        if(MODEL_3DS & 6){ // detect if user is using a New 3DS
+                        if((MODEL_3DS & 6) != 0){ // detect if user is using a New 3DS
                             shouldSpeedup = !shouldSpeedup; // toggle option
                             osSetSpeedupEnable(shouldSpeedup);
                         }
@@ -1146,7 +1146,7 @@ void renderMenu(int menu,int xscr,int yscr){
                         else  drawSizedTextColor("Off",142, ((8 + i) * 32 - 190) >> 1,2.0, 0xDF0000FF);   
                     } else if(i == 3){
                         
-                        if(MODEL_3DS & 6){ // detect if user is using a New 3DS
+                        if((MODEL_3DS & 6) != 0){ // detect if user is using a New 3DS
                             if(shouldSpeedup) drawSizedTextColor("On",142, ((8 + i) * 32 - 190) >> 1,2.0, 0x00DF00FF);    
                             else  drawSizedTextColor("Off",142, ((8 + i) * 32 - 190) >> 1,2.0, 0xDF0000FF); 
                         } else {
