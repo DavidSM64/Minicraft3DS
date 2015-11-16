@@ -98,6 +98,9 @@ void initMiniMap(bool loadUpWorld) {
 				case TILE_STAIRS_UP:
 					sf2d_set_pixel(minimap[i], x, y, 0xFF9F9F9F);
 					break;
+				case 255:
+					sf2d_set_pixel(minimap[i], x, y, 0xFF007F00);
+					break;
 				default:
 					sf2d_set_pixel(minimap[i], x, y, 0xFF111111);
 					break;
@@ -138,6 +141,11 @@ void setupGame(bool loadUpWorld) {
 	}
 
 	initMiniMap(loadUpWorld);
+	shouldRenderMap = false;
+	mScrollX = 0;
+	mScrollY = 0;
+	zoomLevel = 2;
+    sprintf(mapText,"x%d",zoomLevel);
 	initGame = 0;
 }
 
@@ -156,6 +164,8 @@ void tick() {
 		--player.p.endTimer;
 		return;
 	}
+	
+	tickTouchMap();
 
 	int i;
 	for (i = 0; i < 324; ++i) {
@@ -194,6 +204,16 @@ void clearScreen(int* data, u8 fill, int size) {
 char debugText[34];
 char bossHealthText[34];
 int main() {
+    CFGU_GetSystemModel(&MODEL_3DS);
+	FILE * file;
+	shouldRenderDebug = true;
+	if ((file = fopen("settings.bin", "r"))) {
+        fread(&shouldRenderDebug,sizeof(bool),1,file);
+        fread(&shouldSpeedup,sizeof(bool),1,file);
+        osSetSpeedupEnable(shouldSpeedup);
+		fclose(file);
+	}
+    
 	sf2d_init();
 	csndInit();
 	noItem = newItem(ITEM_NULL, 0);
@@ -246,7 +266,8 @@ int main() {
 	k_accept.input = KEY_A;
 	k_decline.input = KEY_B;
 	k_delete.input = KEY_X;
-	FILE * file;
+	k_menuNext.input = KEY_R;
+	k_menuPrev.input = KEY_L;
 
 	/* If btnSave exists, then use that. */
 	if ((file = fopen("btnSave.bin", "rb"))) {
@@ -260,6 +281,8 @@ int main() {
 		fread(&k_accept.input, sizeof(int), 1, file);
 		fread(&k_decline.input, sizeof(int), 1, file);
 		fread(&k_delete.input, sizeof(int), 1, file);
+		fread(&k_menuNext.input, sizeof(int), 1, file);
+		fread(&k_menuPrev.input, sizeof(int), 1, file);
 		fclose(file);
 	}
 	
@@ -268,12 +291,6 @@ int main() {
 		char fnbuf[256];
 		fgets(fnbuf, 256, file); // get directory to texturepack
 		loadTexturePack(fnbuf);   
-		fclose(file);
-	}
-	
-	shouldRenderDebug = true;
-	if ((file = fopen("settings.bin", "r"))) {
-        fread(&shouldRenderDebug,sizeof(bool),1,file);
 		fclose(file);
 	}
 
@@ -292,10 +309,6 @@ int main() {
 		if (currentMenu == 0) {
 			tick();
 			sf2d_start_frame(GFX_TOP, GFX_LEFT);
-			if (currentLevel == 0) {
-				sf2d_draw_texture_part_scale(minimap[1], (-xscr / 3) - 256, (-yscr / 3) - 32, 0, 0, 128, 128, 12.5, 7.5);
-				sf2d_draw_rectangle(0, 0, 400, 240, 0xDFDFDFAF);
-			}
 
 			offsetX = xscr;
 			offsetY = yscr;
@@ -305,10 +318,11 @@ int main() {
 			renderBackground(xscr, yscr);
 			renderEntities(player.x, player.y, &eManager);
 			renderPlayer();
-
+			
 			resetStencilStuff();
 			offsetX = 0;
 			offsetY = 0;
+			
 			if(shouldRenderDebug){
 			    sprintf(fpsstr, " FPS: %.0f, X:%d, Y:%d, E:%d", sf2d_get_fps(), player.x, player.y, eManager.lastSlot[currentLevel]);
 			    drawText(fpsstr, 2, 225);
@@ -316,10 +330,14 @@ int main() {
 			
 			sf2d_end_frame();
 
-			sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
-			sf2d_draw_texture(bottombg, 0, 0);
-			renderGui();
-			sf2d_end_frame();
+            sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+                if(!shouldRenderMap){
+                    sf2d_draw_texture(bottombg, 0, 0);
+                    renderGui();
+                } else {
+                    renderZoomedMap();
+                }
+            sf2d_end_frame();
 		} else {
 			tickMenu(currentMenu);
 			renderMenu(currentMenu, xscr, yscr);

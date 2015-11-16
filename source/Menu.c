@@ -3,7 +3,7 @@
 char options[][12] = {"Start Game", "How To Play","Settings", "About", "Exit"};
 char pOptions[][24] = {"Return to game", "Save Progress", "Exit to title"};
 char keybOptions[][24] = {"Exit and Save", "Exit and Don't save","Reset to default"};
-char setOptions[][24] = {"Rebind Buttons", "Texture packs", "Debug Text:   ", "Return to title"};
+char setOptions[][24] = {"Rebind Buttons", "Texture packs", "Debug Text:   ", "N3DS Speedup:   ", "Return to title"};
 
 // Rebind buttons menu (Settings)
 int keys[] = {
@@ -14,7 +14,7 @@ int keys[] = {
     KEY_L,KEY_R,KEY_ZL,KEY_ZR,
     KEY_START,KEY_SELECT
 };
-int keyProp[10] = {[0 ... 9] = 0};
+int keyProp[12] = {[0 ... 11] = 0};
 bool areYouSure = false;
 bool areYouSureSave = false;
 bool bindOpt = false;
@@ -122,8 +122,8 @@ void addToFileName(char * c){
 }
 
 /* Keypad */
-void doTouchButton(touchPosition touch){
-    int xVal = touch.px, yVal = touch.py;
+void doTouchButton(){
+    int xVal = k_touch.px, yVal = k_touch.py;
     int strLength = strlen(fileNames[worldFileCount]);
     if(yVal >= 60 && yVal < 80){ // 0 to 9
         if(xVal >= 4 && xVal < 4+16){ touchX = 4; if(strLength < 24)addToFileName("1");}
@@ -233,7 +233,7 @@ void switchGameBut(bool left, int buttonID){
 }
 void switchMenuBut(bool left, int buttonID){
     int id;
-    for(id = 0; id < 10; ++id){
+    for(id = 0; id < 12; ++id){
         if(id > 3 && id < 7) continue;
         if(keyProp[id] & buttonID){
             keyProp[id] ^= buttonID; // Toggle buttonID bit
@@ -245,13 +245,13 @@ void switchMenuBut(bool left, int buttonID){
             } else { 
                 int id2 = id+1;
                 if (id2 == 4) id2 = 7;
-                if (id2 > 9) return;
+                if (id2 > 11) return;
                 keyProp[id2] ^= buttonID;
             }
             return;
         }
     }
-    if(left) keyProp[9] ^= buttonID;
+    if(left) keyProp[11] ^= buttonID;
     else keyProp[0] ^= buttonID;
 }
 
@@ -266,6 +266,8 @@ s8 checkPropButtons(){
     if(keyProp[7] == 0) return 7;
     if(keyProp[8] == 0) return 8;
     if(keyProp[9] == 0) return 9;
+    if(keyProp[10] == 0) return 10;
+    if(keyProp[11] == 0) return 11;
     return -1;
 }
 
@@ -315,9 +317,11 @@ void tickMenu(int menu){
                             k_accept.input = keyProp[7];
                             k_decline.input = keyProp[8];
                             k_delete.input = keyProp[9];
+                            k_menuNext.input = keyProp[10];
+                            k_menuPrev.input = keyProp[11];
                             
                             FILE *fs=fopen("btnSave.bin","wb");
-                            fwrite(keyProp,sizeof(int),10,fs);
+                            fwrite(keyProp,sizeof(int),12,fs);
                             fclose(fs);
                             
                             currentSelection = 0;
@@ -341,6 +345,8 @@ void tickMenu(int menu){
                         keyProp[7] = KEY_A;
                         keyProp[8] = KEY_B;
                         keyProp[9] = KEY_X;
+                        keyProp[10] = KEY_R;
+                        keyProp[11] = KEY_L;
 	                    bindOpt = false;
                         errorBut = -1;
                         break;
@@ -535,12 +541,10 @@ void tickMenu(int menu){
                         ++worldFileCount;
                     }
                 }
-                touchPosition touch;
-                hidTouchRead(&touch);
-                if((touch.px != 0 || touch.py != 0) && touchDelay == 0){ 
-                    if(!isTouching)doTouchButton(touch); 
+                if((k_touch.px != 0 || k_touch.py != 0) && touchDelay == 0){ 
+                    if(!isTouching)doTouchButton(); 
                 }
-                else if(touch.px == 0 || touch.py == 0) isTouching = false;
+                else if(k_touch.px == 0 || k_touch.py == 0) isTouching = false;
                 if(touchDelay > 0) --touchDelay;
             }
         break;
@@ -575,8 +579,16 @@ void tickMenu(int menu){
         break;
         
         case MENU_SETTINGS:
-		    if (k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection=3;}
-		    if (k_down.clicked){ ++currentSelection; if(currentSelection > 3)currentSelection=0;}
+		    if (k_up.clicked){ 
+                --currentSelection; 
+                if(currentSelection == 3 && !(MODEL_3DS & 6)) --currentSelection; 
+                if(currentSelection < 0)currentSelection=4;
+            }
+		    if (k_down.clicked){ 
+                ++currentSelection; 
+                if(currentSelection == 3 && !(MODEL_3DS & 6)) ++currentSelection; 
+                if(currentSelection > 4)currentSelection=0;
+            }
             if(k_decline.clicked){
                 currentMenu = MENU_TITLE;
                 currentSelection = 2;
@@ -594,6 +606,8 @@ void tickMenu(int menu){
                         keyProp[7] = k_accept.input;
                         keyProp[8] = k_decline.input;
                         keyProp[9] = k_delete.input;
+                        keyProp[10] = k_menuNext.input;
+                        keyProp[11] = k_menuPrev.input;
                         left = true;
                         selBut = false;
                         bindOpt = false;
@@ -609,10 +623,17 @@ void tickMenu(int menu){
                         shouldRenderDebug = !shouldRenderDebug; // toggle option
                         break;
                     case 3:
+                        if(MODEL_3DS & 6){ // detect if user is using a New 3DS
+                            shouldSpeedup = !shouldSpeedup; // toggle option
+                            osSetSpeedupEnable(shouldSpeedup);
+                        }
+                        break;
+                    case 4:
                         if(true){
-                        FILE * fset = fopen("settings.bin","wb");
-                        fwrite(&shouldRenderDebug,sizeof(bool),1,fset);
-                        fclose(fset);
+                            FILE * fset = fopen("settings.bin","wb");
+                            fwrite(&shouldRenderDebug,sizeof(bool),1,fset);
+                            fwrite(&shouldSpeedup,sizeof(bool),1,fset);
+                            fclose(fset);
                         }
                         currentMenu = MENU_TITLE;
                         currentSelection = 2;
@@ -633,6 +654,10 @@ void tickMenu(int menu){
                         enteringName = false;
                         areYouSure = false;
                     break;
+                    case 1:
+                        sprintf(pageText,"Page: %d/%d",pageNum+1,maxPageNum+1);
+                        currentMenu = MENU_TUTORIAL;
+                    break;
                     case 2:
                         currentSelection = 0;
                         currentMenu = MENU_SETTINGS;
@@ -646,6 +671,25 @@ void tickMenu(int menu){
                 }
                 
             }
+        break;
+        case MENU_TUTORIAL:
+            if(k_decline.clicked){ 
+                currentSelection = 1;
+                currentMenu = MENU_TITLE;
+            }
+            if(k_menuNext.clicked){
+                if(pageNum < maxPageNum){ 
+                    ++pageNum;
+                    sprintf(pageText,"Page: %d/%d",pageNum+1,maxPageNum+1);
+                }
+            }
+            if(k_menuPrev.clicked){
+                if(pageNum > 0){
+                    --pageNum;
+                    sprintf(pageText,"Page: %d/%d",pageNum+1,maxPageNum+1);
+                }
+            }
+            
         break;
     }
     
@@ -673,6 +717,8 @@ char * getButtonFunctionMenu(int key){
     if(keyProp[7] & key) return "Accept";
     if(keyProp[8] & key) return "Decline";
     if(keyProp[9] & key) return "Delete";
+    if(keyProp[10] & key) return "Next";
+    if(keyProp[11] & key) return "Previous";
     return "Nothing";
 }
 
@@ -686,6 +732,14 @@ char guiText4[] = " SPACE  BACKSPACE";
 void renderMenu(int menu,int xscr,int yscr){
     int i = 0;
     switch(menu){
+        case MENU_TUTORIAL:
+		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
+		        renderTutorialPage(true);
+		    sf2d_end_frame();
+		    sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);	
+		        renderTutorialPage(false);
+		    sf2d_end_frame();
+            break;
         case MENU_SETTINGS_TP:
             offsetX = 0;offsetY = (currentSelection * 40) - 48;
 		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
@@ -875,7 +929,7 @@ void renderMenu(int menu,int xscr,int yscr){
                     drawText("Press   to return", 98, 190);
                     renderButtonIcon(k_decline.input & -k_decline.input, 168, 188, 1);
                     
-                    if(errorBut >= 0 && errorBut < 9){
+                    if(errorBut >= 0 && errorBut < 12){
                         char errorText[30];
                         switch(errorBut){
                             case 0: sprintf(errorText, "Error: Missing 'Move up'"); break;
@@ -888,6 +942,8 @@ void renderMenu(int menu,int xscr,int yscr){
                             case 7: sprintf(errorText, "Error: Missing 'Accept'"); break;
                             case 8: sprintf(errorText, "Error: Missing 'Decline'"); break;
                             case 9: sprintf(errorText, "Error: Missing 'Delete'"); break;
+                            case 10: sprintf(errorText, "Error: Missing 'Next'"); break;
+                            case 11: sprintf(errorText, "Error: Missing 'Previous'"); break;
                         }
                         drawTextColor(errorText,(400 - (strlen(errorText) * 12))/2,50,0xFF0000FF);
                     }
@@ -1080,16 +1136,25 @@ void renderMenu(int menu,int xscr,int yscr){
         break;
         case MENU_SETTINGS:
 		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
-		        drawText("Settings",(400-(8*12))/2,40);
-		        for(i = 3; i >= 0; --i){
+		        drawText("Settings",(400-(8*12))/2,30);
+		        for(i = 4; i >= 0; --i){
                     char* msg = setOptions[i];
                     u32 color = 0x7F7F7FFF;
                     if(i == currentSelection) color = 0xFFFFFFFF;
                     if(i == 2){
-                        if(shouldRenderDebug) drawSizedTextColor("On",142, ((8 + i) * 32 - 170) >> 1,2.0, 0x00DF00FF);    
-                        else  drawSizedTextColor("Off",142, ((8 + i) * 32 - 170) >> 1,2.0, 0xDF0000FF);   
+                        if(shouldRenderDebug) drawSizedTextColor("On",142, ((8 + i) * 32 - 190) >> 1,2.0, 0x00DF00FF);    
+                        else  drawSizedTextColor("Off",142, ((8 + i) * 32 - 190) >> 1,2.0, 0xDF0000FF);   
+                    } else if(i == 3){
+                        
+                        if(MODEL_3DS & 6){ // detect if user is using a New 3DS
+                            if(shouldSpeedup) drawSizedTextColor("On",142, ((8 + i) * 32 - 190) >> 1,2.0, 0x00DF00FF);    
+                            else  drawSizedTextColor("Off",142, ((8 + i) * 32 - 190) >> 1,2.0, 0xDF0000FF); 
+                        } else {
+                            color = 0x3F3F3FFF;
+                            drawSizedTextColor("Off",142, ((8 + i) * 32 - 190) >> 1,2.0, 0x3F3F3FFF); 
+                        }
                     }
-                    drawSizedTextColor(msg,(200 - (strlen(msg) * 8))/2, ((8 + i) * 32 - 170) >> 1,2.0, color);    
+                    drawSizedTextColor(msg,(200 - (strlen(msg) * 8))/2, ((8 + i) * 32 - 190) >> 1,2.0, color);    
                 }
 		    sf2d_end_frame();
 		    sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);	
@@ -1104,6 +1169,9 @@ void renderMenu(int menu,int xscr,int yscr){
                         drawTextColor("Show FPS/Pos/Entities",(320 - (22 * 12))/2,24,0xFFFF7FFF);
                         break;
                     case 3:
+                        drawTextColor("Use the N3DS 804mhz mode",(320 - (24 * 12))/2,24,0xFFFF7FFF);
+                        break;
+                    case 4:
                         drawTextColor("Back to the titlescreen",(320 - (23 * 12))/2,24,0xFFFF7FFF);
                         break;
                 }
@@ -1163,7 +1231,7 @@ void renderMenu(int menu,int xscr,int yscr){
                         render16 (startX+9,startY+18,16,112,0);//Player
                         renderc  (startX+9,startY+14,16,160,16,8,0);//Slash
                         drawTextColor("Play minicraft",24,24,0xFFFF7FFF);
-                    break;
+                        break;
                     case 1: // "How To Play"
                         startX = 72;startY = 54;
                         render16(startX,startY,96,208,0);//C-PAD
@@ -1181,16 +1249,34 @@ void renderMenu(int menu,int xscr,int yscr){
                         render16(startX,startY,160,208,0);//C-PAD right
                         
                         drawTextColor("Learn the basics",64,24,0xFFFF7FFF);
-                    break;
+                        break;
                     case 2: // "Settings"
-                    break;
+                        drawTextColor("Modify the game's feel",(320 - (22 * 12))/2,24,0xFFFF7FFF);
+                        renderc(48,48,0,112,64,32,0);
+                        break;
                     case 3: // "About"
-                    break;
+                        drawTextColor("Who made this game?",(320 - (19 * 12))/2,24,0xFFFF7FFF);
+                        
+                        // Secret code ;)
+                        drawSizedText("497420776173206e6f746368",(320 - (24 * 8))/2,80,1);
+                        drawSizedText("506f727465642062792044617669646565736b",(320 - (38 * 8))/2,88,1);
+                        drawSizedText("576879207265616420746869733f",(320 - (28 * 8))/2,96,1);
+                        drawSizedText("596f75207761737465642074696d65",(320 - (30 * 8))/2,104,1);
+                        drawSizedText("4861204861204861204861204861",(320 - (28 * 8))/2,112,1);
+                        drawSizedText("5468652063616b652069732061206c6965",(320 - (34 * 8))/2,120,1);
+                        drawSizedText("4044617669646565736b2074776974746572",(320 - (36 * 8))/2,128,1);
+                        drawSizedText("3533363536333732363537343231",(320 - (28 * 8))/2,136,1);
+                        drawSizedText("4c69617220746578742062656c6f77",(320 - (30 * 8))/2,144,1);
+                        drawSizedText("(Totally not a secret code or anything)",4,160,1);
+                         
+                        break;
+                    case 4: // "Exit"
+                        drawTextColor("Exit to the homebrew menu",(320 - (25 * 12))/2,24,0xFFFF7FFF);
+                        drawTextColor("(bye-bye)",(320 - (9 * 12))/2,100,0xFFFF7FFF);
+                        break;
                 }
 		    sf2d_end_frame();
             break;
-        
-        
     }
-    
+
 }

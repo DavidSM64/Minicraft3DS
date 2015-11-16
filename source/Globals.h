@@ -54,11 +54,18 @@
 bool screenShot;
 int loadedtp;
 
+u8 MODEL_3DS;
+
 extern char versionText[34];
 
 Entity player;
 
 bool shouldRenderDebug;
+bool shouldSpeedup;
+bool shouldRenderMap;
+u8 zoomLevel;
+char mapText[32];
+s16 mScrollX, mScrollY;
 
 sf2d_texture *icons;
 sf2d_texture *font;
@@ -76,6 +83,7 @@ extern char fpsstr[];
 u8 initGame;
 Item noItem;
 int airWizardHealthDisplay;
+s16 awX, awY;
 u32 tickCount;
 RecipeManager* currentRecipes;
 Entity* curChestEntity;
@@ -89,6 +97,8 @@ bool tileIsSolid(int tile, Entity * e);
 s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir);
 
 void tickEntity(Entity* e);
+
+void tickTouchMap();
 
 void trySpawn(int count, int level);
 

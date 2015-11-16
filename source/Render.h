@@ -39,6 +39,7 @@ void bakeLight(sf2d_texture* texture, int x, int y, int r);
 void renderLight(int x, int y, sf2d_texture* texture);
 
 void renderGui();
+void renderZoomedMap();
 void renderPlayer();
 
 void drawText(char * msg, u32 x, u32 y);
@@ -56,6 +57,7 @@ void renderRecipes(RecipeManager * r, int xo, int yo, int x1, int y1,
 void renderItemList(Inventory * inv, int xo, int yo, int x1, int y1,
 		int selected);
 void renderItemWithText(Item* item, int x, int y);
+void renderItemStuffWithText(int itemID, int itemCL, bool onlyOne, int x, int y);
 void renderItemWithTextCentered(Item* item, int width, int y);
 void renderItemIcon(int itemID, int countLevel, int x, int y);
 void renderItemIcon2(int itemID, int countLevel, int x, int y, int z);

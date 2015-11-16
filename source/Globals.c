@@ -1,6 +1,6 @@
 #include "Globals.h"
 
-char versionText[34] = "BETA BUILD 4";
+char versionText[34] = "BETA BUILD 5 (pre 1.0)";
 char fpsstr[34];
 u8 currentMenu = 0;
 
@@ -116,6 +116,86 @@ bool moveMob(Entity* e, int xa, int ya){
 		}
 		if (e->hurtTime > 0) return true;
 		return move(e, xa, ya);
+}
+
+s16 lastTouchX = -1;
+s16 lastTouchY = -1;
+bool isDraggingMap = false;
+bool isChangingSize = false;
+void tickTouchMap(){
+    if(shouldRenderMap){
+        if(k_touch.px > 0 || k_touch.py > 0){
+            // Plus/Minus zoom button
+            if(k_touch.py > 204 && k_touch.py < 232){
+                if(k_touch.px > 284 && k_touch.px < 312){
+                    if(zoomLevel > 4) return;
+                    if(!isChangingSize && !isDraggingMap){
+                        zoomLevel += 2;
+                        mScrollX -= (50 * (zoomLevel/2));
+                        mScrollY -= (40 * (zoomLevel/2));
+                        isChangingSize = true;
+                        sprintf(mapText,"x%d",zoomLevel);
+                    }
+                    if(mScrollX < 320-(128*zoomLevel)) mScrollX = 320-(128*zoomLevel);
+                    else if(mScrollX > 0) mScrollX = 0;
+                    if(mScrollY < 240-(128*zoomLevel)) mScrollY = 240-(128*zoomLevel);
+                    else if(mScrollY > 0) mScrollY = 0;
+                    return;
+                } else if(k_touch.px > 256 && k_touch.px < 284){
+                    if(zoomLevel < 4) return;
+                    if(!isChangingSize && !isDraggingMap){
+                        mScrollX += (50 * (zoomLevel/2));
+                        mScrollY += (40 * (zoomLevel/2));
+                        zoomLevel -= 2;
+                        isChangingSize = true;
+                        sprintf(mapText,"x%d",zoomLevel);
+                    }
+                    if(mScrollX < 320-(128*zoomLevel)) mScrollX = 320-(128*zoomLevel);
+                    else if(mScrollX > 0) mScrollX = 0;
+                    if(mScrollY < 240-(128*zoomLevel)) mScrollY = 240-(128*zoomLevel);
+                    else if(mScrollY > 0) mScrollY = 0;
+                    return;
+                }
+            } else if(k_touch.py > 8 && k_touch.py < 40 && k_touch.px > 284 && k_touch.px < 312){
+                // Exit Button
+                if(!isChangingSize && !isDraggingMap){
+                    shouldRenderMap = false;
+                    return;
+                }
+            }
+        
+            if(!isDraggingMap){
+                lastTouchX = k_touch.px;
+                lastTouchY = k_touch.py;    
+            }
+            if(zoomLevel > 2){
+                int dx = lastTouchX - k_touch.px;
+                if(dx > 1 || dx < -1){
+                    mScrollX -= dx;
+                    if(mScrollX < 320-(128*zoomLevel)) mScrollX = 320-(128*zoomLevel);
+                    else if(mScrollX > 0) mScrollX = 0;
+                }
+                lastTouchX = k_touch.px;
+            }
+        
+            int dy = lastTouchY - k_touch.py;
+            if(dy > 1 || dy < -1){
+                mScrollY -= dy;
+                if(mScrollY < 240-(128*zoomLevel)) mScrollY = 240-(128*zoomLevel);
+                else if(mScrollY > 0) mScrollY = 0;
+            }
+            lastTouchY = k_touch.py;
+            isDraggingMap = true;
+        } else {
+            isDraggingMap = false;
+            isChangingSize = false;
+        }
+    } else {
+        // touch minimap to bring up zoomed map.
+        if(k_touch.py > 100 && k_touch.py < 228 && k_touch.px > 96 && k_touch.px < 228){
+            shouldRenderMap = true;
+        }
+    }
 }
 
 void hurtEntity(Entity* e, int damage, int dir, u32 hurtColor){
@@ -761,7 +841,11 @@ void tickEntity(Entity* e){
 			    e->wizard.ya = ((rand()%3) - 1) * (rand()%2);
 		    }
 		    
-		    if(e->wizard.xa != 0 || e->wizard.ya != 0) e->wizard.walkDist++;
+		    if(e->wizard.xa != 0 || e->wizard.ya != 0){ 
+                e->wizard.walkDist++;
+                awX = e->x;
+                awY = e->y;
+            }
 		    
 		    if(e->wizard.xa < 0) e->wizard.dir = 2;
 		    else if(e->wizard.xa > 0) e->wizard.dir = 3;
@@ -1104,7 +1188,7 @@ void switchLevel(s8 change){
     if(currentLevel > 4) currentLevel = 0; else if(currentLevel < 0) currentLevel = 4;
     if(currentLevel == 1) sf2d_set_clear_color(RGBA8(0x82, 0x6D, 0x6C, 0xFF));
     else if(currentLevel > 1) sf2d_set_clear_color(RGBA8(0x66, 0x66, 0x66, 0xFF));
-    else sf2d_set_clear_color(RGBA8(0x00, 0x1D, 0xC1, 0xFF));
+    else sf2d_set_clear_color(RGBA8(0x00, 0x7F, 0x00, 0xFF));
 }
 
 bool playerIntersectsEntity(Entity* e){

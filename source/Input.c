@@ -6,6 +6,7 @@ void toggleKey(Key* key, bool held, bool down){
 }
     
 void tickKeys(u32 held, u32 down){
+    hidTouchRead(&k_touch); // Update touch position
     toggleKey(&k_up, held & k_up.input, down & k_up.input);
     toggleKey(&k_down, held & k_down.input, down & k_down.input);
     toggleKey(&k_left, held & k_left.input, down & k_left.input);
@@ -16,5 +17,7 @@ void tickKeys(u32 held, u32 down){
     toggleKey(&k_accept, held & k_accept.input, down & k_accept.input);
     toggleKey(&k_decline, held & k_decline.input, down & k_decline.input);
     toggleKey(&k_delete, held & k_delete.input, down & k_delete.input);
+    toggleKey(&k_menuNext, held & k_menuNext.input, down & k_menuNext.input);
+    toggleKey(&k_menuPrev, held & k_menuPrev.input, down & k_menuPrev.input);
 }
 

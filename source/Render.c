@@ -93,20 +93,20 @@ void render16(s32 xp, s32 yp, u32 xTile, u32 yTile, u8 bits) {
 			scaleX, scaleY);
 }
 
-void render16c(s32 xp, s32 yp, u32 xTile, u32 yTile, u8 bits, float scaleX,
-		float scaleY) {
+void render16c(s32 xp, s32 yp, u32 xTile, u32 yTile, u8 bits, float scaleX,float scaleY) {
 	xp -= offsetX;
 	yp -= offsetY;
+	xp *= scaleX;
+	yp *= scaleY;
 	if ((bits & 1) > 0) {
+		xp += 16 * scaleX;
 		scaleX = -scaleX;
-		xp += 16;
 	}
 	if ((bits & 2) > 0) {
+		yp += 16 * scaleY;
 		scaleY = -scaleY;
-		yp += 16;
 	}
-	sf2d_draw_texture_part_scale(icons, xp * scaleX, yp * scaleY, xTile, yTile,
-			16, 16, scaleX, scaleY);
+	sf2d_draw_texture_part_scale(icons, xp, yp, xTile, yTile,16, 16, scaleX, scaleY);
 }
 
 void render16b(s32 xp, s32 yp, u32 xTile, u32 yTile, u8 bits, u32 color) {
@@ -548,7 +548,7 @@ void renderTile(int i, int x, int y) {
 		render16s(x, y, rockTable[v] + 8192, 0, 0xCFCFFFFF);
 		renderRockDotsWithColor(rockTable[v], x, y, 0x9494FFFF);
 		break;
-	case TILE_DIRT:
+	case TILE_DIRT: // render dots.
 		if (currentLevel > 1)
 			render16b(x, y, 0, 0, 0, 0x383838FF);
 		else
@@ -637,10 +637,36 @@ void renderTile(int i, int x, int y) {
 
 }
 
+void renderZoomedMap() {
+    int mx = mScrollX;
+    int my = mScrollY;
+    if(zoomLevel == 2) mx = 32;
+	sf2d_draw_texture_scale(minimap[currentLevel], mx, my, zoomLevel, zoomLevel); // zoomed map
+	if(currentLevel == 0){
+        render16c(
+        (mx+((awX/16)*zoomLevel)-16)/2, 
+        (my+((awY/16)*zoomLevel)-16)/2, 
+        160, 112, 
+        ((player.p.walkDist >> 6) & 1) == 0 ? 0 : 1, 
+        2, 2
+        ); // Airwizard on zoomed map
+    }
+    render16c(
+    (mx+((player.x/16)*zoomLevel)-16)/2, 
+    (my+((player.y/16)*zoomLevel)-16)/2, 
+    0, 112, 
+    ((player.p.walkDist >> 6) & 1) == 0 ? 0 : 1, 
+    2, 2
+    ); // Player on zoomed map
+    drawText(mapText,224, 214); // "x2"/"x4"/"x6"
+    render16(142, 2, 72, 208, 0); // Exit button
+    renderc(126, 102, 40, 208, 32, 16, 0); // Plus/Minus zoom buttons
+    if(zoomLevel < 3) sf2d_draw_rectangle(258, 210, 26, 20, 0x4F4F4F7F); // gray out minus button
+    else if(zoomLevel > 5) sf2d_draw_rectangle(284, 210, 26, 20, 0x4F4F4F7F); // gray out minus button
+}
+
 char scoreT[32];
 void renderGui() {
-    //renderFrame(0,0,11,3,0x201092FF);
-    //renderFrame(11,0,20,3,0x201092FF);
 	int i;
 	for (i = 0; i < 10; ++i) {
 		if (i < player.p.health)
@@ -657,6 +683,10 @@ void renderGui() {
 	itoa(player.p.score, scoreT, 10); // integer to base10 string
 	drawText("Score:",214,12);
 	drawText(scoreT,(140-(strlen(scoreT)*12))/2 + 180,29);
+	if(currentLevel == 0){
+        renderc(44 + (awX/32), 47 + (awY/32), 88, 216, 8, 8, 0); // Mini-AWizard head.
+    }
+	renderc(44 + (player.x/32), 47 + (player.y/32), 88, 208, 8, 8, 0); // Mini-Player head.
 }
 
 void renderPlayer() {
@@ -748,7 +778,11 @@ void renderMenuBackground(int xScroll, int yScroll) {
 }
 
 void renderBackground(int xScroll, int yScroll) {
-    sf2d_draw_rectangle(0, 0, 400, 240, dirtColor[currentLevel]); // dirt color
+    if(currentLevel > 0) sf2d_draw_rectangle(0, 0, 400, 240, dirtColor[currentLevel]); // dirt color
+	else {
+		sf2d_draw_texture_part_scale(minimap[1], (-xScroll / 3) - 256, (-yScroll / 3) - 32, 0, 0, 128, 128, 12.5, 7.5);
+		sf2d_draw_rectangle(0, 0, 400, 240, 0xDFDFDFAF);
+	}
 	int xo = xScroll >> 4;
 	int yo = yScroll >> 4;
 	int x, y;
@@ -1034,6 +1068,15 @@ void renderItemWithText(Item* item, int x, int y) {
 		drawText(getItemName(item->id, item->countLevel), x + 18, y + 2);
 	else
 		drawTextColorSpecial(getItemName(item->id, item->countLevel), x + 18,
+				y + 2, 0xD2D2D2FF, 0xFFFFFFFF);
+}
+
+void renderItemStuffWithText(int itemID, int itemCL, bool onlyOne, int x, int y) {
+	renderItemIcon(itemID, itemCL, x >> 1, y >> 1);
+	if (onlyOne)
+		drawText(getItemName(itemID, itemCL), x + 18, y + 2);
+	else
+		drawTextColorSpecial(getItemName(itemID, itemCL), x + 18,
 				y + 2, 0xD2D2D2FF, 0xFFFFFFFF);
 }
 
