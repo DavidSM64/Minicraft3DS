@@ -46,65 +46,7 @@ void initMiniMap(bool loadUpWorld) {
 				}
 
 				/* Minimaps */
-				switch (map[i][x + y * 128]) {
-				case TILE_WATER:
-					sf2d_set_pixel(minimap[i], x, y, 0xFFFF0000);
-					break;
-				case TILE_LAVA:
-					sf2d_set_pixel(minimap[i], x, y, 0xFF0000FF);
-					break;
-				case TILE_DIRT:
-					sf2d_set_pixel(minimap[i], x, y, 0xFF6C6D82);
-					break;
-				case TILE_ROCK:
-					sf2d_set_pixel(minimap[i], x, y, 0xFF7F7F7F);
-					break;
-				case TILE_HARDROCK:
-					sf2d_set_pixel(minimap[i], x, y, 0xFF7F5F5F);
-					break;
-				case TILE_GRASS:
-					sf2d_set_pixel(minimap[i], x, y, 0xFF00FF00);
-					break;
-				case TILE_TREE:
-					sf2d_set_pixel(minimap[i], x, y, 0xFF007F00);
-					break;
-				case TILE_SAND:
-					sf2d_set_pixel(minimap[i], x, y, 0xFF00FFFF);
-					break;
-				case TILE_CACTUS:
-					sf2d_set_pixel(minimap[i], x, y, 0xFF009F00);
-					break;
-				case TILE_FLOWER:
-					sf2d_set_pixel(minimap[i], x, y, 0xFF00FF3F);
-					break;
-				case TILE_IRONORE:
-					sf2d_set_pixel(minimap[i], x, y, 0xFF9696DC);
-					break;
-				case TILE_GOLDORE:
-					sf2d_set_pixel(minimap[i], x, y, 0xFF9AE8E5);
-					break;
-				case TILE_GEMORE:
-					sf2d_set_pixel(minimap[i], x, y, 0xFFDE98DF);
-					break;
-				case TILE_CLOUD:
-					sf2d_set_pixel(minimap[i], x, y, 0xFFFFFFFF);
-					break;
-				case TILE_CLOUDCACTUS:
-					sf2d_set_pixel(minimap[i], x, y, 0xFFAFAFAF);
-					break;
-				case TILE_STAIRS_DOWN:
-					sf2d_set_pixel(minimap[i], x, y, 0xFF9F9F9F);
-					break;
-				case TILE_STAIRS_UP:
-					sf2d_set_pixel(minimap[i], x, y, 0xFF9F9F9F);
-					break;
-				case 255:
-					sf2d_set_pixel(minimap[i], x, y, 0xFF007F00);
-					break;
-				default:
-					sf2d_set_pixel(minimap[i], x, y, 0xFF111111);
-					break;
-				}
+				sf2d_set_pixel(minimap[i], x, y, getTileColor(map[i][x + y * 128]));
 			}
 		}
 	}
@@ -135,6 +77,7 @@ void setupGame(bool loadUpWorld) {
 			trySpawn(500, i);
 		}
 		addEntityToList(newAirWizardEntity(630, 820, 0), &eManager);
+		player.p.hasWonSaved = false;
 	} else {
 		initPlayer();
 		loadWorld(currentFileName, &eManager, &player, (u8*) map, (u8*) data);
@@ -198,13 +141,13 @@ void tick() {
 void clearScreen(int* data, u8 fill, int size) {
 	int i;
 	for (i = 0; i < size / 4; ++i)
-		data[i] = 0x000000FF;
+		data[i] = 0xFF000000;
 }
 
 char debugText[34];
 char bossHealthText[34];
 int main() {
-    initCfgu();
+    cfguInit();
     CFGU_GetSystemModel(&MODEL_3DS);
 	FILE * file;
 	shouldRenderDebug = true;
@@ -226,6 +169,12 @@ int main() {
 	icons = sfil_load_PNG_buffer(icons2_png, SF2D_PLACE_RAM);
 	font = sfil_load_PNG_buffer(Font_png, SF2D_PLACE_RAM);
 	bottombg = sfil_load_PNG_buffer(bottombg_png, SF2D_PLACE_RAM);
+	
+	dirtColor[0] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 0)); 
+	dirtColor[1] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 1)); 
+	dirtColor[2] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 2)); 
+	dirtColor[3] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 3)); 
+	dirtColor[4] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 4)); 
 
 	loadSound(&snd_playerHurt, "resources/playerhurt.raw");
 	loadSound(&snd_playerDeath, "resources/playerdeath.raw");
@@ -234,10 +183,9 @@ int main() {
 	loadSound(&snd_pickup, "resources/pickup.raw");
 	loadSound(&snd_bossdeath, "resources/bossdeath.raw");
 	loadSound(&snd_craft, "resources/craft.raw");
-
+	
 	bakeLights();
 	
-
 	int i;
 	for (i = 0; i < 5; ++i) {
 		minimap[i] = sf2d_create_texture(128, 128, TEXFMT_RGBA8,
@@ -245,18 +193,10 @@ int main() {
 		sf2d_texture_tile32(minimap[i]);
 	}
 	
-	dirtColor[0] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 0)); 
-	dirtColor[1] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 1)); 
-	dirtColor[2] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 2)); 
-	dirtColor[3] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 3)); 
-	dirtColor[4] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 4)); 
-
-
 	sf2d_set_vblank_wait(true);
 
-	sf2d_set_clear_color(0xFF);
+	sf2d_set_clear_color(0xFF000000);
 
-	/* Default inputs */
 	k_up.input = KEY_DUP | KEY_CPAD_UP | KEY_CSTICK_UP;
 	k_down.input = KEY_DDOWN | KEY_CPAD_DOWN | KEY_CSTICK_DOWN;
 	k_left.input = KEY_DLEFT | KEY_CPAD_LEFT | KEY_CSTICK_LEFT;
@@ -270,7 +210,6 @@ int main() {
 	k_menuNext.input = KEY_R;
 	k_menuPrev.input = KEY_L;
 
-	/* If btnSave exists, then use that. */
 	if ((file = fopen("btnSave.bin", "rb"))) {
 		fread(&k_up.input, sizeof(int), 1, file);
 		fread(&k_down.input, sizeof(int), 1, file);
@@ -287,7 +226,6 @@ int main() {
 		fclose(file);
 	}
 	
-	/* If lastTP exists, then use that. */
 	if ((file = fopen("lastTP.bin", "r"))) {
 		char fnbuf[256];
 		fgets(fnbuf, 256, file); // get directory to texturepack
@@ -313,7 +251,7 @@ int main() {
 
 			offsetX = xscr;
 			offsetY = yscr;
-			sf2d_draw_rectangle(0, 0, 400, 240, RGBA8(12, 12, 12, 255)); //You might think "real" black would be better, but it actually looks better that way
+			sf2d_draw_rectangle(0, 0, 400, 240, 0xFF0C0C0C); //RGBA8(12, 12, 12, 255)); //You might think "real" black would be better, but it actually looks better that way
 			renderLightsToStencil();
 
 			renderBackground(xscr, yscr);
@@ -358,7 +296,7 @@ int main() {
 	sf2d_free_texture(minimap[4]);
 	freeSounds();
 	csndExit();
-    exitCfgu();
+    cfguExit();
 	sf2d_fini();
 	return 0;
 }

@@ -15,6 +15,7 @@ void render(s32 xp, s32 yp, u32 xTile, u32 yTile, u8 bits) {
 	sf2d_draw_texture_part_scale(icons, xp << 1, yp << 1, xTile, yTile, 8, 8,
 			scaleX, scaleY);
 }
+
 void renderb(s32 xp, s32 yp, u32 xTile, u32 yTile, u8 bits, u32 color) {
 	xp -= offsetX;
 	yp -= offsetY;
@@ -429,10 +430,13 @@ void renderLightsToStencil() {
 		int xo = offsetX >> 4;
 		int yo = offsetY >> 4;
 		int x, y;
-		for (x = xo; x <= 13 + xo; ++x) {
-			for (y = yo; y <= 8 + yo; ++y)
-			    if(getTile(x, y) == TILE_LAVA) renderLight(x << 4, y << 4, playerLightBake);
-		}
+		
+		if(currentLevel == 4){
+		  for (x = xo-2; x <= 13 + xo+2; ++x) {
+			 for (y = yo-2; y <= 8 + yo+2; ++y)
+			     if(getTile(x, y) == TILE_LAVA) renderLight(x << 4, y << 4, playerLightBake);
+		  }
+        }
 		
 		
 		GPU_SetDepthTestAndWriteMask(true, GPU_GEQUAL, GPU_WRITE_ALL);
@@ -531,8 +535,8 @@ void renderTile(int i, int x, int y) {
 				| checkSurrTiles4(x >> 4, y >> 4, TILE_TREE)
 				| checkSurrTiles4(x >> 4, y >> 4, TILE_FLOWER)
 				| checkSurrTiles4(x >> 4, y >> 4, TILE_SAPLING_TREE);
-		render16b(x, y, grassTable[v], 80, 0, 0x69B569FF);
-		renderDotsWithColor(v, x, y, 0, 0x8ED38EFF);
+		render16b(x, y, grassTable[v], 80, 0, 0xFF69B569);
+		renderDotsWithColor(v, x, y, 0, 0xFF8ED38E);
 		break;
 	case TILE_TREE:
 		render16(x, y, treeTable[checkSurrTiles8(x >> 4, y >> 4, TILE_TREE)],
@@ -541,37 +545,37 @@ void renderTile(int i, int x, int y) {
 	case TILE_ROCK:
 		v = checkSurrTiles8(x >> 4, y >> 4, TILE_ROCK);
 		render16s(x, y, rockTable[v] + 8192, 0, 0xFFFFFFFF);
-		renderRockDotsWithColor(rockTable[v], x, y, 0x949494FF);
+		renderRockDotsWithColor(rockTable[v], x, y, 0xFF949494);
 		break;
 	case TILE_HARDROCK:
 		v = checkSurrTiles8(x >> 4, y >> 4, TILE_HARDROCK);
-		render16s(x, y, rockTable[v] + 8192, 0, 0xCFCFFFFF);
-		renderRockDotsWithColor(rockTable[v], x, y, 0x9494FFFF);
+		render16s(x, y, rockTable[v] + 8192, 0, 0xFFFFCFCF);
+		renderRockDotsWithColor(rockTable[v], x, y, 0xFFFF9494);
 		break;
 	case TILE_DIRT: // render dots.
 		if (currentLevel > 1)
-			render16b(x, y, 0, 0, 0, 0x383838FF);
+			render16b(x, y, 0, 0, 0, 0xFF383838);
 		else
-			render16b(x, y, 0, 0, 0, 0xA88F8FFF);
+			render16b(x, y, 0, 0, 0, 0xFF8F8FA8);
 		break;
 	case TILE_SAND:
 		v = checkSurrTiles4(x >> 4, y >> 4, TILE_SAND)
 				| checkSurrTiles4(x >> 4, y >> 4, TILE_CACTUS)
 				| checkSurrTiles4(x >> 4, y >> 4, TILE_SAPLING_CACTUS);
-		render16b(x, y, grassTable[v], 80, 0, 0xF7F77BFF);
-		renderDotsWithColor(v, x, y, 0, 0xB7B75BFF);
+		render16b(x, y, grassTable[v], 80, 0, 0xFF7BF7F7);
+		renderDotsWithColor(v, x, y, 0, 0xFF5BB7B7);
 		break;
 	case TILE_WATER:
 		v = checkSurrTiles4(x >> 4, y >> 4, TILE_WATER)
 				| checkSurrTiles4(x >> 4, y >> 4, TILE_HOLE);
-		render16b(x, y, grassTable[v], 96, 0, 0x001DC1FF);
+		render16b(x, y, grassTable[v], 96, 0, 0xFFC11D00);
 		srand((tickCount + (x / 2 - y) * 4311) / 10);
-		renderDotsWithColor(v, x, y, rand() & 3, 0x6B6BFFFF);
+		renderDotsWithColor(v, x, y, rand() & 3, 0xFFFF6B6B);
 		break;
 	case TILE_LAVA:
 		v = checkSurrTiles4(x >> 4, y >> 4, TILE_LAVA)
 				| checkSurrTiles4(x >> 4, y >> 4, TILE_HOLE);
-		render16b(x, y, grassTable[v], 96, 0, 0xC11D00FF);
+		render16b(x, y, grassTable[v], 96, 0, 0xFF001DC1);
 		srand((tickCount + (x / 2 - y) * 4311) / 10);
 		renderDotsWithColor(v, x, y, rand() & 3, 0xFF6B6BFF);
 		break;
@@ -580,7 +584,7 @@ void renderTile(int i, int x, int y) {
 				grassTable[checkSurrTiles4(x >> 4, y >> 4, TILE_HOLE)
 						| checkSurrTiles4(x >> 4, y >> 4, TILE_WATER)
 						| checkSurrTiles4(x >> 4, y >> 4, TILE_LAVA)], 96, 0,
-				0x383838FF);
+				0xFF383838);
 		break;
 	case TILE_CACTUS:
 		render16(x, y, 48, 0, 0);
@@ -597,13 +601,13 @@ void renderTile(int i, int x, int y) {
 		render16(x, y, 112, 0, 0);
 		break;
 	case TILE_IRONORE:
-		render16b(x, y, 80, 0, 0, 0xDFC8C8FF);
+		render16b(x, y, 80, 0, 0, 0xFFC8C8DF);
 		break;
 	case TILE_GOLDORE:
-		render16b(x, y, 80, 0, 0, 0xE5E8B9FF);
+		render16b(x, y, 80, 0, 0, 0xFFB9E8E5);
 		break;
 	case TILE_GEMORE:
-		render16b(x, y, 80, 0, 0, 0xDF98DEFF);
+		render16b(x, y, 80, 0, 0, 0xFFDE98DF);
 		break;
 	case TILE_CLOUD:
 		render16b(x, y,
@@ -643,13 +647,15 @@ void renderZoomedMap() {
     if(zoomLevel == 2) mx = 32;
 	sf2d_draw_texture_scale(minimap[currentLevel], mx, my, zoomLevel, zoomLevel); // zoomed map
 	if(currentLevel == 0){
-        render16c(
-        (mx+((awX/16)*zoomLevel)-16)/2, 
-        (my+((awY/16)*zoomLevel)-16)/2, 
-        160, 112, 
-        ((player.p.walkDist >> 6) & 1) == 0 ? 0 : 1, 
-        2, 2
-        ); // Airwizard on zoomed map
+        if(awX != 0 && awY != 0){
+            render16c(
+            (mx+((awX/16)*zoomLevel)-16)/2, 
+            (my+((awY/16)*zoomLevel)-16)/2, 
+            160, 112, 
+            ((player.p.walkDist >> 6) & 1) == 0 ? 0 : 1, 
+            2, 2
+            ); // Airwizard on zoomed map
+        }
     }
     render16c(
     (mx+((player.x/16)*zoomLevel)-16)/2, 
@@ -661,8 +667,8 @@ void renderZoomedMap() {
     drawText(mapText,224, 214); // "x2"/"x4"/"x6"
     render16(142, 2, 72, 208, 0); // Exit button
     renderc(126, 102, 40, 208, 32, 16, 0); // Plus/Minus zoom buttons
-    if(zoomLevel < 3) sf2d_draw_rectangle(258, 210, 26, 20, 0x4F4F4F7F); // gray out minus button
-    else if(zoomLevel > 5) sf2d_draw_rectangle(284, 210, 26, 20, 0x4F4F4F7F); // gray out minus button
+    if(zoomLevel < 3) sf2d_draw_rectangle(258, 210, 26, 20, 0x7F4F4F4F); // gray out minus button
+    else if(zoomLevel > 5) sf2d_draw_rectangle(284, 210, 26, 20, 0x7F4F4F4F); // gray out minus button
 }
 
 char scoreT[32];
@@ -684,7 +690,9 @@ void renderGui() {
 	drawText("Score:",214,12);
 	drawText(scoreT,(140-(strlen(scoreT)*12))/2 + 180,29);
 	if(currentLevel == 0){
-        renderc(44 + (awX/32), 47 + (awY/32), 88, 216, 8, 8, 0); // Mini-AWizard head.
+        if(awX != 0 && awY != 0){
+            renderc(44 + (awX/32), 47 + (awY/32), 88, 216, 8, 8, 0); // Mini-AWizard head.
+        }
     }
 	renderc(44 + (player.x/32), 47 + (player.y/32), 88, 208, 8, 8, 0); // Mini-Player head.
 }
@@ -781,7 +789,7 @@ void renderBackground(int xScroll, int yScroll) {
     if(currentLevel > 0) sf2d_draw_rectangle(0, 0, 400, 240, dirtColor[currentLevel]); // dirt color
 	else {
 		sf2d_draw_texture_part_scale(minimap[1], (-xScroll / 3) - 256, (-yScroll / 3) - 32, 0, 0, 128, 128, 12.5, 7.5);
-		sf2d_draw_rectangle(0, 0, 400, 240, 0xDFDFDFAF);
+		sf2d_draw_rectangle(0, 0, 400, 240, 0xAFDFDFDF);
 	}
 	int xo = xScroll >> 4;
 	int yo = yScroll >> 4;
@@ -962,7 +970,7 @@ void renderEntity(Entity* e, int x, int y) {
 		x -= offsetX;
 		y -= offsetY;
 		drawSizedTextColor(e->textParticle.text, x + 1,
-				y - (int) e->textParticle.zz + 1, 2, 0xFF);
+				y - (int) e->textParticle.zz + 1, 2, 0xFF000000);
 		drawSizedTextColor(e->textParticle.text, x,
 				y - (int) e->textParticle.zz, 2, e->textParticle.color);
 		break;
@@ -1014,10 +1022,10 @@ void renderItemList(Inventory * inv, int xo, int yo, int x1, int y1,
 	if (drawCursor) {
 		int yy = selected + 1 - io + yo;
 		sf2d_draw_rectangle((xo << 4) - (offsetX << 1),
-				(yy << 4) - (offsetY << 1), 12, 12, 0xFF);
+				(yy << 4) - (offsetY << 1), 12, 12, 0xFF000000);
 		drawText(">", (xo << 4), yy << 4);
 		sf2d_draw_rectangle(((xo + w) << 4) - 12 - (offsetX << 1),
-				(yy << 4) - (offsetY << 1), 12, 12, 0xFF);
+				(yy << 4) - (offsetY << 1), 12, 12, 0xFF000000);
 		drawText("<", ((xo + w) << 4) - 12, yy << 4);
 	}
 }
@@ -1048,7 +1056,7 @@ void renderRecipes(RecipeManager * r, int xo, int yo, int x1, int y1,
 		if (r->recipes[i + io].canCraft)
 			col = 0xFFFFFFFF;
 		else
-			col = 0x7F7F7FFF;
+			col = 0xFF7F7F7F;
 		drawTextColor(
 				getBasicItemName(r->recipes[i + io].itemResult,
 						r->recipes[i + io].itemAmountLevel), x + 18, y + 2,
@@ -1056,9 +1064,9 @@ void renderRecipes(RecipeManager * r, int xo, int yo, int x1, int y1,
 	}
 
 	int yy = selected + 1 - io + yo;
-	sf2d_draw_rectangle(xo << 4, yy << 4, 12, 12, 0xFF);
+	sf2d_draw_rectangle(xo << 4, yy << 4, 12, 12, 0xFF000000);
 	drawText(">", xo << 4, yy << 4);
-	sf2d_draw_rectangle(((xo + w) << 4) - 12, yy << 4, 12, 12, 0xFF);
+	sf2d_draw_rectangle(((xo + w) << 4) - 12, yy << 4, 12, 12, 0xFF000000);
 	drawText("<", ((xo + w) << 4) - 12, yy << 4);
 }
 
@@ -1068,7 +1076,7 @@ void renderItemWithText(Item* item, int x, int y) {
 		drawText(getItemName(item->id, item->countLevel), x + 18, y + 2);
 	else
 		drawTextColorSpecial(getItemName(item->id, item->countLevel), x + 18,
-				y + 2, 0xD2D2D2FF, 0xFFFFFFFF);
+				y + 2, 0xFFD2D2D2, 0xFFFFFFFF);
 }
 
 void renderItemStuffWithText(int itemID, int itemCL, bool onlyOne, int x, int y) {
@@ -1077,7 +1085,7 @@ void renderItemStuffWithText(int itemID, int itemCL, bool onlyOne, int x, int y)
 		drawText(getItemName(itemID, itemCL), x + 18, y + 2);
 	else
 		drawTextColorSpecial(getItemName(itemID, itemCL), x + 18,
-				y + 2, 0xD2D2D2FF, 0xFFFFFFFF);
+				y + 2, 0xFFD2D2D2, 0xFFFFFFFF);
 }
 
 /* For bottom screen */ 
@@ -1091,7 +1099,7 @@ void renderItemWithTextCentered(Item* item, int width, int y) {
 		drawText(getItemName(item->id, item->countLevel), x + 18, y + 2);
 	else
 		drawTextColorSpecial(getItemName(item->id, item->countLevel), x + 18,
-				y + 2, 0xD2D2D2FF, 0xFFFFFFFF);
+				y + 2, 0xFFD2D2D2, 0xFFFFFFFF);
 }
 
 void renderItemIcon2(int itemID, int countLevel, int x, int y, int z) {
@@ -1099,103 +1107,103 @@ void renderItemIcon2(int itemID, int countLevel, int x, int y, int z) {
 	case ITEM_NULL:
 		return;
 	case TOOL_SHOVEL:
-		renderb(x, y, countLevel * 8, 144, 0, 0xFF);
+		renderb(x, y, countLevel * 8, 144, 0, 0xFF000000);
 		break;
 	case TOOL_HOE:
-		renderb(x, y, 40 + countLevel * 8, 144, 0, 0xFF);
+		renderb(x, y, 40 + countLevel * 8, 144, 0, 0xFF000000);
 		break;
 	case TOOL_SWORD:
-		renderb(x, y, 80 + countLevel * 8, 144, 0, 0xFF);
+		renderb(x, y, 80 + countLevel * 8, 144, 0, 0xFF000000);
 		break;
 	case TOOL_PICKAXE:
-		renderb(x, y, 120 + countLevel * 8, 144, 0, 0xFF);
+		renderb(x, y, 120 + countLevel * 8, 144, 0, 0xFF000000);
 		break;
 	case TOOL_AXE:
-		renderb(x, y, 160 + countLevel * 8, 144, 0, 0xFF);
+		renderb(x, y, 160 + countLevel * 8, 144, 0, 0xFF000000);
 		break;
 	case ITEM_ANVIL:
-		renderb(x, y, 120, 152, 0, 0xFF);
+		renderb(x, y, 120, 152, 0, 0xFF000000);
 		break;
 	case ITEM_CHEST:
-		renderb(x, y, 128, 152, 0, 0xFF);
+		renderb(x, y, 128, 152, 0, 0xFF000000);
 		break;
 	case ITEM_OVEN:
-		renderb(x, y, 136, 152, 0, 0xFF);
+		renderb(x, y, 136, 152, 0, 0xFF000000);
 		break;
 	case ITEM_FURNACE:
-		renderb(x, y, 144, 152, 0, 0xFF);
+		renderb(x, y, 144, 152, 0, 0xFF000000);
 		break;
 	case ITEM_WORKBENCH:
-		renderb(x, y, 152, 152, 0, 0xFF);
+		renderb(x, y, 152, 152, 0, 0xFF000000);
 		break;
 	case ITEM_LANTERN:
-		renderb(x, y, 160, 152, 0, 0xFF);
+		renderb(x, y, 160, 152, 0, 0xFF000000);
 		break;
 	case ITEM_POWGLOVE:
-		renderb(x, y, 56, 152, 0, 0xFF);
+		renderb(x, y, 56, 152, 0, 0xFF000000);
 		break;
 	case ITEM_FLOWER:
-		renderb(x, y, 0, 152, 0, 0xFF);
+		renderb(x, y, 0, 152, 0, 0xFF000000);
 		break;
 	case ITEM_WOOD:
-		renderb(x, y, 8, 152, 0, 0xFF);
+		renderb(x, y, 8, 152, 0, 0xFF000000);
 		break;
 	case ITEM_STONE:
-		renderb(x, y, 16, 152, 0, 0xFF);
+		renderb(x, y, 16, 152, 0, 0xFF000000);
 		break;
 	case ITEM_SAND:
-		renderb(x, y, 16, 152, 0, 0xFF);
+		renderb(x, y, 16, 152, 0, 0xFF000000);
 		break;
 	case ITEM_DIRT:
-		renderb(x, y, 16, 152, 0, 0xFF);
+		renderb(x, y, 16, 152, 0, 0xFF000000);
 		break;
 	case ITEM_CLOUD:
-		renderb(x, y, 16, 152, 0, 0xFF);
+		renderb(x, y, 16, 152, 0, 0xFF000000);
 		break;
 	case ITEM_ACORN:
-		renderb(x, y, 24, 152, 0, 0xFF);
+		renderb(x, y, 24, 152, 0, 0xFF000000);
 		break;
 	case ITEM_CACTUS:
-		renderb(x, y, 32, 152, 0, 0xFF);
+		renderb(x, y, 32, 152, 0, 0xFF000000);
 		break;
 	case ITEM_SEEDS:
-		renderb(x, y, 40, 152, 0, 0xFF);
+		renderb(x, y, 40, 152, 0, 0xFF000000);
 		break;
 	case ITEM_WHEAT:
-		renderb(x, y, 48, 152, 0, 0xFF);
+		renderb(x, y, 48, 152, 0, 0xFF000000);
 		break;
 	case ITEM_FLESH:
-		renderb(x, y, 64, 152, 0, 0xFF);
+		renderb(x, y, 64, 152, 0, 0xFF000000);
 		break;
 	case ITEM_BREAD:
-		renderb(x, y, 72, 152, 0, 0xFF);
+		renderb(x, y, 72, 152, 0, 0xFF000000);
 		break;
 	case ITEM_APPLE:
-		renderb(x, y, 80, 152, 0, 0xFF);
+		renderb(x, y, 80, 152, 0, 0xFF000000);
 		break;
 	case ITEM_SLIME:
-		renderb(x, y, 88, 152, 0, 0xFF);
+		renderb(x, y, 88, 152, 0, 0xFF000000);
 		break;
 	case ITEM_COAL:
-		renderb(x, y, 88, 152, 0, 0xFF);
+		renderb(x, y, 88, 152, 0, 0xFF000000);
 		break;
 	case ITEM_IRONORE:
-		renderb(x, y, 88, 152, 0, 0xFF);
+		renderb(x, y, 88, 152, 0, 0xFF000000);
 		break;
 	case ITEM_GOLDORE:
-		renderb(x, y, 88, 152, 0, 0xFF);
+		renderb(x, y, 88, 152, 0, 0xFF000000);
 		break;
 	case ITEM_IRONINGOT:
-		renderb(x, y, 96, 152, 0, 0xFF);
+		renderb(x, y, 96, 152, 0, 0xFF000000);
 		break;
 	case ITEM_GOLDINGOT:
-		renderb(x, y, 96, 152, 0, 0xFF);
+		renderb(x, y, 96, 152, 0, 0xFF000000);
 		break;
 	case ITEM_GLASS:
-		renderb(x, y, 104, 152, 0, 0xFF);
+		renderb(x, y, 104, 152, 0, 0xFF000000);
 		break;
 	case ITEM_GEM:
-		renderb(x, y, 112, 152, 0, 0xFF);
+		renderb(x, y, 112, 152, 0, 0xFF000000);
 		break;
 	}
 	y -= z;
@@ -1249,13 +1257,13 @@ void renderItemIcon(int itemID, int countLevel, int x, int y) {
 		render(x, y, 8, 152, 0);
 		break;
 	case ITEM_STONE:
-		renderb(x, y, 16, 152, 0, 0xCFCFCFFF);
+		renderb(x, y, 16, 152, 0, 0xFFCFCFCF);
 		break;
 	case ITEM_SAND:
-		renderb(x, y, 16, 152, 0, 0xF7F77BFF);
+		renderb(x, y, 16, 152, 0, 0xFF7BF7F7);
 		break;
 	case ITEM_DIRT:
-		renderb(x, y, 16, 152, 0, 0xAF9781FF);
+		renderb(x, y, 16, 152, 0, 0xFF8197AF);
 		break;
 	case ITEM_CLOUD:
 		renderb(x, y, 16, 152, 0, 0xFFFFFFFF);
@@ -1282,22 +1290,22 @@ void renderItemIcon(int itemID, int countLevel, int x, int y) {
 		render(x, y, 80, 152, 0);
 		break;
 	case ITEM_SLIME:
-		renderb(x, y, 88, 152, 0, 0x4DC04DFF);
+		renderb(x, y, 88, 152, 0, 0xFF4DC04D);
 		break;
 	case ITEM_COAL:
-		renderb(x, y, 88, 152, 0, 0x383838FF);
+		renderb(x, y, 88, 152, 0, 0xFF383838);
 		break;
 	case ITEM_IRONORE:
-		renderb(x, y, 88, 152, 0, 0xBC9999FF);
+		renderb(x, y, 88, 152, 0, 0xFF9999BC);
 		break;
 	case ITEM_GOLDORE:
-		renderb(x, y, 88, 152, 0, 0xCECE77FF);
+		renderb(x, y, 88, 152, 0, 0xFF88CECE);
 		break;
 	case ITEM_IRONINGOT:
-		renderb(x, y, 96, 152, 0, 0xDFC8C8FF);
+		renderb(x, y, 96, 152, 0, 0xFFC8C8DF);
 		break;
 	case ITEM_GOLDINGOT:
-		renderb(x, y, 96, 152, 0, 0xEAEABCFF);
+		renderb(x, y, 96, 152, 0, 0xFFBCEAEA);
 		break;
 	case ITEM_GLASS:
 		render(x, y, 104, 152, 0);

@@ -188,10 +188,10 @@ int loadWorld(char * filename, EntityManager * eManager, Entity * player, u8 * m
                             eManager->entities[i][j].yr = 3;
                             eManager->entities[i][j].canPass = false;
                             switch(eManager->entities[i][j].slime.lvl){
-                                case 2: eManager->entities[i][j].slime.color = 0xCC8282FF; break;
-                                case 3: eManager->entities[i][j].slime.color = 0xEFEFEFFF; break;
-                                case 4: eManager->entities[i][j].slime.color = 0x6262AAFF; break;
-                                default: eManager->entities[i][j].slime.color = 0x95DB95FF; break;
+                                case 2: eManager->entities[i][j].slime.color = 0xFF8282CC; break;
+                                case 3: eManager->entities[i][j].slime.color = 0xFFEFEFEF; break;
+                                case 4: eManager->entities[i][j].slime.color = 0xFFAA6262; break;
+                                default: eManager->entities[i][j].slime.color = 0xFF95DB95; break;
                             }
                             break;
                         case ENTITY_ZOMBIE:
@@ -206,10 +206,10 @@ int loadWorld(char * filename, EntityManager * eManager, Entity * player, u8 * m
                             eManager->entities[i][j].yr = 3;
                             eManager->entities[i][j].canPass = false;
                             switch(eManager->entities[i][j].zombie.lvl){
-                                case 2: eManager->entities[i][j].zombie.color = 0xCC8282FF; break;
-                                case 3: eManager->entities[i][j].zombie.color = 0xEFEFEFFF; break;
-                                case 4: eManager->entities[i][j].zombie.color = 0x6262AAFF; break;
-                                default: eManager->entities[i][j].zombie.color = 0x95DB95FF; break;
+                                case 2: eManager->entities[i][j].zombie.color = 0xFF8282CC; break;
+                                case 3: eManager->entities[i][j].zombie.color = 0xFFEFEFEF; break;
+                                case 4: eManager->entities[i][j].zombie.color = 0xFFAA6262; break;
+                                default: eManager->entities[i][j].zombie.color = 0xFF95DB95; break;
                             }
                             break;
                         case ENTITY_ITEM:

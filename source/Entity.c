@@ -82,10 +82,10 @@ Entity newZombieEntity(int lvl, int x, int y, int level){
     e.yr = 3;
     e.canPass = false;
     switch(lvl){
-        case 2: e.zombie.color = 0xCC8282FF; break;
-        case 3: e.zombie.color = 0xEFEFEFFF; break;
-        case 4: e.zombie.color = 0x6262AAFF; break;
-        default: e.zombie.color = 0x95DB95FF; break;
+        case 2: e.zombie.color = 0xFF8282CC; break;
+        case 3: e.zombie.color = 0xFFEFEFEF; break;
+        case 4: e.zombie.color = 0xFFAA6262; break;
+        default: e.zombie.color = 0xFF95DB95; break;
     }
     return e;
 }
@@ -108,10 +108,10 @@ Entity newSlimeEntity(int lvl, int x, int y, int level){
     e.yr = 3;
     e.canPass = false;
     switch(lvl){
-        case 2: e.slime.color = 0xCC8282FF; break;
-        case 3: e.slime.color = 0xEFEFEFFF; break;
-        case 4: e.slime.color = 0x6262AAFF; break;
-        default: e.slime.color = 0x95DB95FF; break;
+        case 2: e.slime.color = 0xFF8282CC; break;
+        case 3: e.slime.color = 0xFFEFEFEF; break;
+        case 4: e.slime.color = 0xFFAA6262; break;
+        default: e.slime.color = 0xFF95DB95; break;
     }
     return e;
 }
